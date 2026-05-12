@@ -1,0 +1,714 @@
+AI Engineer Roadmap 
+Muhammed Tarık Menguc — 5 Aylık Kişisel Plan / 5-Month Personal Plan 
+Sektör: E-ticaret (birincil) + KaloriLens-2 (ikincil) · Hedef: Junior AI Engineer — Endüstri · Tempo: 30+ saat/hafta 
+ 
+0. Felsefe — Bu Planı Niye Böyle Yapıyoruz / 
+Philosophy — Why This Plan Is Built This Way 
+Bu roadmap üç kaynaktan damıtıldı: (1) roadmap.sh/ai-engineer resmi yol haritası, (2) izlediğin YouTube 
+videosundaki pratik tavsiyeler (5 altın kural), (3) senin mevcut seviyen — Google AI Academy Fellow, 200 
+günlük AI yolculuğu, Andrew Ng ML Specialization bitirilmiş, küçük RAG projesi yapılmış, şu anda 
+LoRA/QLoRA ile fine-tuning deniyorsun. 
+This roadmap is distilled from three sources: (1) the official roadmap.sh/ai-engineer, (2) the 5 golden rules 
+from the YouTube video you shared, (3) your current level — Google AI Academy Fellow, 200-day AI 
+journey, Andrew Ng ML Specialization completed, a small RAG project shipped, currently experimenting 
+with LoRA/QLoRA fine-tuning. 
+Temel İlkeler / Core Principles 
+ Projelerle öğreniyoruz, kavramlarla değil. / We learn through projects, not concepts. Her ay bitmiş, 
+deploy edilmiş, portfolyoda gösterilecek bir proje çıkarıyor. 
+ AI'ı bir düşman olarak değil, bir eş olarak kullanıyoruz. / We use AI as a partner, not as an opponent. Asıl 
+beceri AI ile birlikte hızlı ve doğru iş çıkarmak. 
+ Her proje sektöre özel oluyor (e-ticaret). / Every project is industry-specific (e-commerce). Rastgele 
+chatbot yok. 
+ Her LLM çağrısı loglanır, maliyet bilinir. / Every LLM call is logged, cost is known. Cost tracking olmayan 
+PR merge edilmez. 
+ Her proje canlı URL'ye deploy edilir. / Every project is deployed to a live URL. Localhost'ta kalan proje 
+proje değildir (video'daki altın kural). 
+ Framework değil, SDK kullanırız. / We use SDKs, not frameworks. LangChain/CrewAI yok — tek istisna 
+SQL Agent. 
+1. Mevcut Durumun / Your Current Snapshot 
+CV, GitHub (github.com/tarikmenguc), Kaggle (kaggle.com/mtarkmeng) ve verdiğin bilgilerden çıkarım: Güçlü Yönler / Strengths 
+ Genel yazılım: C#, PHP (Laravel), React Native, Python — 3. sınıf Software Engineering 
+ Backend + API deneyim: GBB IT Services internship (PHP/Laravel), REST düşünce kurulu 
+ Bulut temel: AWS ile biraz pratik 
+ Veri & ML temel: SQL (IBM), pandas/numpy, Andrew Ng ML Specialization (supervised + unsupervised) 
+ Shipped ML projeleri: Predictive Modeling for Customer Behavior (XGBoost, deployed), Netflix 
+Recommender, House Price, Telecom Churn 
+ Mobil + CV deneyimi: KaloriLens (React Native + NestJS + Computer Vision) 
+ AI spesifik: küçük bir RAG projesi yapılmış, şu anda LoRA/QLoRA deniyorsun 
+ Google AI Academy Fellow — network + erişim avantajı 
+Zayıf Yönler (Kendin Söyledin + Çıkarım) / Weaknesses 
+ AI olmadan sıfırdan kod yazma refleksi zayıf — yol haritasını biliyorsun ama klavyede parmaklar yavaş 
+ Üretime (production) çıkarma deneyimi sınırlı — deployed XGBoost projesi var ama LLM tabanlı servis 
+yok 
+ LLMOps tarafı boş: cost tracking, observability (Langfuse/Phoenix), prompt versioning 
+ AI Safety konuları işlenmemiş: prompt injection, moderation, structured output zorunluluğu 
+ Multimodal konular (Vision, Whisper, CLIP) henüz yok 
+ Agent mimarileri (ReAct, tool calling, MCP) pratikte yok 
+ Fine-tuning şu an notebook düzeyinde — canlı bir fine-tuned model URL yok 
+Ay 1'e Başlamadan Önce Varsaydığımız Seviye / Assumed Level Before Month 1 
+ Python syntax: akıcı / fluent 
+ HTTP / REST / JSON: biliyorsun / you know it 
+ SQL CRUD + JOIN: biliyorsun / you know it 
+ Supervised ML matematik: Andrew Ng düzeyinde / Andrew Ng level 
+ Git + GitHub: temel düzey / basic level 
+ Docker: temel (compose up yapabilirsin) / basic (can run compose up) 
+2. Sektör Kararı / Sector Decision 
+Birincil sektör: E-ticaret (Retail). İkincil showcase: KaloriLens-2 (sağlık/beslenme). 
+Primary sector: E-commerce (Retail). Secondary showcase: KaloriLens-2 (health/nutrition). 
+Niye E-ticaret? / Why E-commerce? 
+ Veri erişilebilirliği yüksek: Olist (Brezilya), Amazon Reviews, Instacart, H&M — hepsi Kaggle'da ücretsiz, 
+milyonlarca satır 
+ İş ilanı hacmi en yüksek sektörlerden: Trendyol, Hepsiburada, Amazon, Shopify ekosistemleri 
+ Multimodal ve agent senaryoları bol: görsel ürün arama, fiyat karşılaştırma, öneri, chatbot asistan 
+ Regülasyon düşük: sağlık/finansta junior'a verilmeyen erişim var, e-ticarette yok 
+ Video'daki SQL Agent + multimodal örneği doğrudan e-ticaret üzerinde anlatıldı Sağlığı Niye Tamamen Bırakmıyoruz? / Why Not Drop Health Entirely? 
+ KaloriLens zaten var — ufak bir LLM güncellemesi ile sağlık vitrini hazır olur 
+ 2-3 yıl içinde health-tech hype'ı patlarsa e-ticarette production deneyimiyle kolay geçersin 
+ CV'de 'AI Engineer with cross-industry exposure (retail + health)' demek ayrıcalık sağlar 
+3. Üç Drill Pattern — AI'la Çalışırken Bağımlı 
+Olmamanın Yolu / Three Drill Patterns — How to 
+Use AI Without Depending on It 
+Senin asıl zaafın 'klavyede boilerplate yazamamak' değil. Asıl zaaf: AI'ın yazdığını okuyup doğrulayamamak, 
+planlayamamak, bozulduğunda tek başına düzeltememek. Bunları saatlerce AI-off egzersiziyle değil, her 
+projeyle birlikte uyguladığın üç pattern ile çözüyoruz. 
+Your real weakness isn't 'can't type boilerplate'. It's inability to read, verify, plan, and debug what AI writes. 
+We solve this not with hours of AI-off drills, but with three patterns applied inside every project. 
+Pattern 1 — Okuma Drilli / Reading Drill (günde 20–30 dk) 
+ AI bir dosya yazdıktan sonra o dosyayı kapat, geri dön, her satırı yüksek sesle açıkla (kendine) 
+ Açıklayamadığın satırda dur. ChatGPT'ye sorma — resmi dokümana git (örn. FastAPI docs, SQLAlchemy 
+docs) 
+ Dosyanın sonunda bir cümleyle özet yaz: 'Bu dosya ne yapıyor, hangi sorunu çözüyor?' 
+ Hedef: Hafta sonunda repo'daki her dosyayı 60 saniyede özetleyebilmek 
+Pattern 2 — Plan Drilli / Planning Drill (her yeni feature'dan önce 30 dk, kağıt kalem)  
+ Endpoint'leri listele: method + path + input + output 
+ Pydantic modellerini çiz: field'lar, validations, optional mı? 
+ DB tablolarını çiz: primary key, foreign key, index'ler 
+ Data flow'u 1 sayfa ok+kutu diagram olarak çiz: user → FastAPI → LLM → DB → user 
+ Başarı / hata senaryolarını yaz: en az 3 'ne yanlış gider?' sorusu 
+ Ancak o zaman AI'ya git. Böylece AI mimari karar vermek yerine senin kararlarını kodluyor 
+Pattern 3 — Debug Drilli / Debug Drill (haftada 1–2 saat) 
+ AI'a: 'Bu kodun bir yerini gizlice boz, bana nereyi bozduğunu söyleme' dedir 
+ Servisi çalıştır, bug'ı tek başına bul — AI kapalı 
+ Hata mesajı, log, stack trace okuma pratiği bu sayede gelişir 
+ Bulduktan sonra AI'a 'seçtiğin bozma yöntemi production'da nasıl bulunabilirdi?' sor — monitoring + 
+test yazma refleksi oluşur 
+Ayda Bir — Fundamental Refresh (2 saat, AI-off) 
+ Ay 1: Cosine similarity numpy'la sıfırdan  Ay 2: BM25 formülünü elle uygula, 50 dok üzerinde test et 
+ Ay 3: LoRA matrix decomposition'ı kağıtta çöz 
+ Ay 4: Attention mekanizmasının Q/K/V çarpımını elle yap, numpy'da kontrol et 
+ Ay 5: Bir transformer bloğunu from scratch yaz (Karpathy tarzı) 
+4. Tech Stack / Teknoloji Yığını 
+Video'daki stack'i birebir alıyoruz. Bu seçimlerin sebebi her projede tekrar seçim yapıp vakit kaybetmemek; 
+standart bir iskelet üzerinde derinleşmek. 
+Backend / API 
+ FastAPI (async, Pydantic tabanlı, otomatik OpenAPI docs) 
+ Pydantic v2 — her request/response model'i, structured output için zorunlu 
+ Uvicorn (dev) + Gunicorn + Uvicorn worker (prod) 
+Veritabanı / Database 
+ PostgreSQL 16 — ana ilişkisel DB 
+ pgvector extension — Ay 1-2 boyunca vektör arama için. Tek VPS, basit setup, $0 ekstra maliyet 
+ Pinecone — Ay 4'te ekleniyor. Sebep: video'daki adamın stack'inde Pinecone var, iş ilanlarında 
+'Pinecone deneyimi' yazıyor, free tier (100K vektör) demo için yeter 
+ Karar mantığı: junior olarak işe başlarken Pinecone tecrübesi CV'de değerli; ama Ay 1-2'de yeni servis 
+öğrenmek yerine Postgres'te kalmak daha hızlı. Ay 4'te bir projeyi Pinecone'a taşıyıp 'her ikisini de 
+kullandım' diyebilirsin 
+ SQLAlchemy 2 async + asyncpg 
+ Alembic — migration 
+LLM & Embeddings 
+ OpenAI SDK — gpt-4o-mini (default), gpt-4o (karmaşık agent tasks için) 
+ Anthropic SDK — Claude Haiku/Sonnet alternatifleri 
+ text-embedding-3-small / large — embedding için 
+ Sentence Transformers (all-MiniLM-L6-v2) — local/offline alternatif 
+ Hugging Face Transformers + Ollama (Ay 3'te) 
+LLMOps & Monitoring 
+ Langfuse (self-hosted veya cloud) — prompt + trace + cost tracking 
+ Phoenix (Arize) — eval ve observability 
+ Custom logger (Ay 1'de yazacaksın) — DB tabanlı cost + latency kaydı 
+Frontend / UI Politikası — Video'dan / Frontend Policy — From Video 
+Video'daki kural net: AI Engineer UI tarafında vakit kaybetmemeli. Senin işin LLM backend, agent 
+orchestration, RAG quality. UI sadece demo için var — onu da AI üretsin.  İlk demo'lar için: Streamlit veya Gradio (Python, 50 satır UI çıkar) 
+ Daha şık demolar için: Lovable.dev veya v0.dev — prompt yazıp tam React UI üretir 
+ Portfolio sitesi (Ay 5) için: Astro veya Next.js — yine Lovable/v0 ile başla, manuel düzelt 
+ YASAK: 'figma'dan tasarım çıkarıp 2 hafta UI yazmak' tarzı. Bu seni AI Engineer değil frontend dev yapar 
+Deployment 
+ Docker + docker-compose (dev) 
+ Caddy (otomatik HTTPS / Let's Encrypt) 
+ Hostinger VPS ($7/ay) veya OVH / DigitalOcean — video'daki tavsiyeye uygun 
+ AWS EC2 + Route53 — sadece iş görüşmesinde 'AWS kullandım mı?' sorusuna cevap olarak, Ay 5'te 
+opsiyonel 
+ GitHub Actions — CI/CD 
+Framework Politikası — Mantığı / Framework Policy — The Reasoning 
+Video'daki kural 'LangChain kötü, SDK iyi' değil. Asıl ilke: 'Sıfırdan yazmak, battle-tested karmaşık tooling'i 
+tekrar icat etmek anlamına geliyorsa, kütüphane kullan. Aksi halde, doğrudan SDK ile yaz.' 
+The rule isn't 'LangChain bad, SDK good'. The actual principle: 'Reach for a library only when rolling your 
+own means reinventing battle-tested complex tooling. Otherwise, write directly with the SDK.' 
+Doğrudan SDK ile Yazılan Yerler / Where We Write Directly With The SDK  
+ Basit chatbot — 50 satır, OpenAI SDK + Pydantic yeterli 
+ RAG — embed + retrieve + prompt; bağımlılık eklemeye değmez 
+ Tek-tool agent (search, lookup) — function calling SDK'da var, manual ReAct 100 satır 
+ Multi-tool agent (4-5 tool) — yine SDK + manuel orchestration; LangChain'in agent loop'u senin 
+kontrolünden çıkar 
+ Sebep / Reason: bağımlılık çok değişiyor, doc okuma yükü, debug zorluğu — video'daki yorum birebir 
+İSTİSNA: SQL Agent için LangChain — Niye? / EXCEPTION: LangChain for SQL Agent — 
+Why? 
+Bir SQL Agent'ı sıfırdan yazsan, tekrar uygulaman gereken battle-tested altı şey var. Hiçbiri 'kolay' değil ve 
+hepsi production'da patlayan yerler: 
+ Schema introspection — information_schema'dan tablolar/kolonlar/tipler çıkar, LLM'e sun 
+ Dialect-aware SQL generation — PostgreSQL ILIKE, MySQL LIMIT, BigQuery partition farklı 
+ Iterative correction loop — LLM yanlış kolon yazar, DB hata döner, hatayı LLM'e geri ver, düzeltsin, retry 
+ Result handling — 200K satır döndüyse truncate + summarize + paginated drill-down 
+ Safety katmanı — read-only user, query timeout, row limit, SQL injection defansı, schema-level access 
+control 
+ Few-shot example injection — domain query örneklerini schema'ya göre dinamik prompt'a koymak 
+Bunlar LangChain SQLDatabaseToolkit + create_sql_agent içinde test edilmiş. Sıfırdan yazsan 2-3 hafta 
+gider, üstelik production'da edge case'lerle karşılaştığında patlayan sen olursun. Video'daki adamın 'yüz binlerce satırlık veride harika bir araç' demesinin sebebi tam bu — büyük datasette iterative correction 
+olmadan LLM'in tek seferde doğru SQL üretme şansı çok düşük. 
+Diğer Kütüphaneler / Other Libraries 
+ CrewAI YOK — aynı agent loop kontrol kaybı + sürekli güncelleme problemi 
+ LlamaIndex — Ay 2'de 1 gün karşılaştırma için denemek serbest, ama production'da SDK + custom 
+kullanıyoruz 
+ Haystack, Semantic Kernel — bilmen iyi (CV'de görürsen) ama yazmıyoruz 
+ Ollama, Unsloth, peft, trl — Ay 3'te kullanacağız, bunlar 'framework' değil 'tooling' — gerekli 
+5. 5 Aylık Zaman Çizelgesi Özet / 5-Month Timeline 
+Overview 
+Her ay bir ana tema + 1 flagship proje çıkacak. roadmap.sh'deki tüm başlıklar aya dağıtıldı. 
+Ay / 
+Month 
+Ana Tema / Main 
+Theme 
+roadmap.sh Konuları Flagship Proje / Flagship 
+Project 
+Ay 0 
+(1 hafta) 
+Foundation Setup Intro, Roles, Common Terminology Starter repo çalışır durumda + 
+GitHub/LinkedIn hazır 
+Ay 1 LLM Fundamentals + 
+RAG v1 
+Pre-trained Models, OpenAI API, Prompt 
+Engineering, Token Management, 
+Embeddings, Vector DBs, RAG Basics 
+E-ticaret ürün arama chatbot 
+(v1) — canlı URL 
+Ay 2 RAG v2 + AI Safety RAG Advanced (chunking, reranking, 
+hybrid), AI Safety & Ethics (prompt injection, 
+moderation, adversarial testing, structured 
+output) 
+E-ticaret RAG v2 + eval suite + 
+safety layer 
+Ay 3 Open-Source + Fine-
+tuning 
+Open vs Closed Source, HuggingFace Hub, 
+Inference SDK, Transformers.js, Ollama, 
+Fine-tuning (LoRA/QLoRA, SFT, DPO) 
+Fine-tuned Llama-3.1 ürün 
+açıklama üreticisi — canlı URL 
+Ay 4 Agents + MCP + 
+Multimodal 
+AI Agents (ReAct, manual, OpenAI 
+Tools/Assistant), Multimodal AI (Vision, 
+DALL-E, Whisper, CLIP) 
+Görsel ürün arama + çok ajanlı 
+satış asistanı (MCP) 
+Ay 5 LLMOps + Polish + Job 
+Hunt 
+Development Tools, Monitoring (Langfuse, 
+Phoenix), Semantic Cache, Prompt 
+Versioning 
+Portfolio sitesi + 30 başvuru + 
+mock interview 
+ 
+6. Haftalık Ritim (30+ saat) / Weekly Rhythm (30+ 
+hours) 
+Blok / Block Saat / Hours Ne yapıyorsun / What you do 
+Deep work — flagship proje 14 Planla, kodla (AI ile), oku, deploy et 
+Teori & roadmap.sh okuma 5 Ayın temasına göre — paper, doc, video 
+Okuma drilli 3 AI'ın yazdığı kodu satır satır aç, özetle Debug drilli 2 AI'a bozdur, sen düzelt 
+Plan drilli 1 Her yeni feature öncesi 30 dk kağıt-kalem 
+Haftalık yazım 2 Pazar günü 500 kelimelik blog / LinkedIn post 
+Buffer / review 3 Takıldığın yer, kod review, retrospective 
+TOPLAM 30  
+ 
+Pazartesi = yeni başlangıç. Pazar = review + planlama. Bir günü tamamen atlıyorsan sorun değil, haftalık 30 
+saati yakala — esnek ama ölçülen bir plan. 
+  7. Ay 0 — Foundation Setup (1 Hafta) 
+Ay 0 yeni kavram öğrenme haftası DEĞİL. Tamamen bir mise en place — malzemeleri tezgaha dizmek. 2 
+güne kadar bitirebilirsen direkt Ay 1'e geç. 
+Month 0 is NOT a new-concept week. It's mise en place — laying out the tools. If you finish in 2 days, skip 
+straight to Month 1. 
+Checklist — Tümü Bitmeden Ay 1'e Geçme 
+ Starter repo klonla (outputs/starter-repo klasörü), docker-compose up çalıştır, localhost:8000/docs 
+açılıyor mu 
+ OpenAI hesabı + API key + .env'ye ekle — ilk chat request'i at, log'da cost gör 
+ Anthropic hesabı + API key (opsiyonel, Ay 4'te kullanacağız) 
+ GitHub profil README güncellemesi — pinned repos: projelerini e-ticaret/AI odaklı sırala 
+ LinkedIn update — 'Google AI Academy Fellow | Junior AI Engineer in training' tarzı headline 
+ Kaggle — mevcut projeleri 'featured' notebook olarak güncelle 
+ VPS seçimi: Hostinger/OVH/DigitalOcean — sadece hesap aç, henüz kiralama yapma (Ay 1 Hafta 3'te) 
+ Cursor veya Windsurf IDE kurulumu (AI kod editörü) 
+ Langfuse self-hosted veya cloud hesabı aç (Ay 2'de aktif kullanacağız) 
+ Notion veya Obsidian — 'blockers.md' dosyası oluştur: AI'a gitme isteği duyduğun her anı 1 satırla 
+kaydet 
+roadmap.sh 'Introduction' bölümünü oku / Read roadmap.sh Introduction section 
+ What is an AI Engineer? — 15 dk okuma + kendi kelimelerinle 3 paragraf yaz 
+ AI Engineer vs ML Engineer — farklar tablosu çıkar (3 madde minimum) 
+ LLMs / Inference / Training / AI vs AGI — kavram haritası çıkar 
+ Common Terminology — bilmediğin her terimi Notion'a kaydet, Ay 1 boyunca dönüp bakacaksın 
+ Impact on Product Development + Roles and Responsibilities 
+Ay 0 Sonunda / End of Month 0 
+ GitHub'da public starter repo 
+ LinkedIn post #1 — 'AI Engineer yolculuğum başlıyor, bu 5 aylık plan' — paylaştığında bize de tag at :) 
+ Notion/Obsidian'da terminoloji sözlüğü + blockers.md dosyası 
+ Çalışan bir /chat endpoint'i — ilk log edilmiş $0.0001'lık maliyet kaydı DB'de 
+  8. Ay 1 — LLM Fundamentals + RAG v1 
+Ana hedef: Production kalitesinde ilk LLM servisini canlıya çıkarmak. Bu ay video'daki 5 altın kuralın 4'ünü 
+uyguluyorsun (logger, model selection, end-to-end planning, sektörel proje). 
+roadmap.sh kapsamı / roadmap.sh Coverage 
+ Pre-trained Models — Benefits, Limitations, Popular AI Models (OpenAI, Claude, Gemini, Azure, 
+HuggingFace, Mistral, Cohere, Replicate genel bakış) 
+ OpenAI Platform & API — Chat Completions API, Writing Prompts, Maximum Tokens, Token Counting, 
+Pricing, Managing Tokens, OpenAI Playground 
+ Prompt Engineering — zero-shot, few-shot, CoT, ReAct (giriş düzeyi), role prompts 
+ What are Embeddings — Semantic Search, Recommendation Systems, Anomaly Detection, Data 
+Classification 
+ OpenAI Embeddings API + Pricing 
+ Open-Source Embeddings giriş — Sentence Transformers 
+ Vector Databases — pgvector seçimi, indexing, similarity search 
+ RAG (basic) — Chunking, Embedding, Retrieval, Generation, SDK ile manuel implementation 
+Video'dan Altın Kurallar Bu Ay Uygulanacak / Golden Rules Applied 
+ 1. Logger + Cost Tracking — Hafta 1'de yazacaksın, her çağrı DB'ye loglanacak, günlük cost cap $0.50 
+ 3. Doğru Model Seçimi — Hafta 4'te model selection matrix çıkaracaksın (gpt-4o-mini / gpt-4o / claude-
+haiku / llama-3.1-8b) 
+ 4. Uçtan Uca Planlama — Her endpoint Pydantic schema ile, structured output ile 
+ 5. Sektörel Proje — Olist Brezilya e-ticaret datasetinde çalışıyorsun 
+Hafta 1 — Temel Scaffold + Logger + İlk Chat Endpoint 
+ Pzt: Starter repo'yu detaylı oku, her dosyayı satır satır yüksek sesle açıkla (Pattern 1) 
+ Sal: app/logger.py TODO'larını AI kapalı tamamla — LlmCall, log_llm_call, CostCapExceeded, daily cap 
+kontrolü 
+ Çar: Pydantic v2 modelleri: ChatRequest, ChatResponse, validation testleri (5 test) 
+ Per: /chat endpoint + OpenAI call + logger + DB'ye interaction kaydı 
+ Cum: pytest ile 5 test yaz, hepsi AI kapalı 
+ Cmt: Karpathy 'Let's build GPT from scratch' videosu — pen & paper notlar 
+ Paz: Blog post #1 — 'İlk hafta: logger, cost tracking, neden önemli?' (500 kelime) 
+Hafta 2 — Embeddings + pgvector + RAG v1 
+ Pzt: Olist Brezilya e-ticaret datasetini Kaggle'dan indir, 10K ürün temizle (pandas) 
+ Sal: pgvector extension kur, ürün embedding tablosu oluştur, text-embedding-3-small ile batch embed 
+ Çar: Cosine similarity SQL query (AI kapalı yaz), top-k retrieval 
+ Per: 3 farklı chunk size dene (256 / 512 / 1024), quality karşılaştır 
+ Cum: /search endpoint — query → embed → retrieve → LLM'e context pass → cevap 
+ Cmt: BM25 ekle (rank_bm25 library), hybrid search (0.5 BM25 + 0.5 vector)  Paz: 20 örnek query hazırla, Precision@5 manuel değerlendir, blog post #2 
+Hafta 3 — Production Deploy + Rate Limiting + HTTPS 
+ Pzt: VPS kirala (Hostinger/OVH $7/ay), SSH key + firewall (ufw) 
+ Sal: docker-compose.prod.yml: Postgres + FastAPI + Caddy — otomatik HTTPS via Let's Encrypt 
+ Çar: .env secret management, OpenAI key güvenli, hiç Git'e girmiyor 
+ Per: Rate limiting (slowapi) + API key auth + cost cap per user ($0.10/gün) 
+ Cum: GitHub Actions CI/CD — push → test → build → deploy 
+ Cmt: Monitoring — Langfuse self-hosted veya basit Postgres dashboard 
+ Paz: URL'yi LinkedIn'de paylaş, 60sn demo video çek, blog post #3 
+Hafta 4 — Model Selection Matrix + Transformer Teorisi 
+ Pzt: 'Attention is All You Need' paper — 2 sayfalık özet (pen & paper) 
+ Sal: Karpathy 'Build GPT from scratch' — kendi notebook'unda tekrar kodla 
+ Çar: Tokenization — BPE, tiktoken, 'bir kelime neden 2 token?' deep dive 
+ Per: Model selection matrix Excel — gpt-4o-mini / gpt-4o / claude-haiku / claude-sonnet / llama-3.1-8b 
+/ qwen-2.5-7b (columns: $/1M in, $/1M out, context, latency, quality score) 
+ Cum: Kendi RAG servisini 4 modelde paralel çalıştır, cost + quality ölç 
+ Cmt: Prompt patterns — zero-shot / few-shot / CoT / ReAct — her biri için 1 örnek log 
+ Paz: Ay 1 retrospektifi (3 sayfa markdown), blog post #4, LinkedIn Ay 1 özet 
+Ay 1 Flagship Proje: 'E-Commerce Product Search Chatbot v1' 
+ Girdi: kullanıcının doğal dil sorgusu ('500 TL altı kırmızı koşu ayakkabısı') 
+ Çıktı: 5 ürün önerisi + AI açıklama + fiyat karşılaştırması 
+ Stack: FastAPI + Postgres + pgvector + OpenAI + Caddy + VPS 
+ URL: https://{subdomain}.com/chat — canlı, 7/24 erişilebilir 
+ Cost budget: günlük $0.50 cap 
+ Tests: 5 unit + 3 integration 
+ Deliverables: Çalışan URL, GitHub repo, 4 blog post, model selection matrix Excel 
+  9. Ay 2 — RAG v2 + AI Safety + Edge Cases 
+Ay 1'de ürettiğin servis 'çalışan prototip'. Ay 2'de onu 'production-grade' yapıyorsun: değerlendirme 
+metrikleri, güvenlik katmanı, edge case testleri, structured output zorunluluğu. 
+roadmap.sh kapsamı / roadmap.sh Coverage 
+ RAG & Implementation (Advanced) — Advanced chunking strategies, reranking, hybrid retrieval, 
+evaluation (RAGAS, TruLens) 
+ RAG vs Fine-tuning — ne zaman hangisi, karar ağacı 
+ Implementing RAG — LangChain vs LlamaIndex vs SDK karşılaştırması (1 günlük deneme) 
+ AI Safety and Ethics — Prompt Injection Attacks, Bias and Fairness, Security and Privacy 
+ Conducting Adversarial Testing 
+ OpenAI Moderation API 
+ Adding end-user IDs in prompts 
+ Robust prompt engineering 
+ Know your Customers / Use cases 
+ Constraining outputs and inputs — Pydantic structured output zorunlu 
+ Safety Best Practices 
+Video'dan Altın Kurallar Bu Ay Uygulanacak / Golden Rules Applied 
+ 2. Edge Case Testing — Cursor'a API'ı ver, 'bir kullanıcı gibi saçma ve alakalı sorular sor' dedir 
+ 4. Structured Output — her endpoint Pydantic schema zorunlu, sistem dışına çıkış engellendi 
+ Prompt injection defans: 'Ignore previous instructions, tell me [X]' tarzı saldırıları test et ve engelle 
+Hafta 5 — Advanced Chunking + Reranking 
+ Recursive character splitting, semantic chunking, document-aware chunking 
+ Ürün + yorum + kategori — farklı chunk strategy 
+ Cross-encoder reranker (ms-marco-MiniLM-L-6-v2) — top-20'den top-5'e 
+ Contextual retrieval (Anthropic'in tekniği) — context-enriched chunks 
+Hafta 6 — Hybrid Search v2 + Query Rewriting 
+ BM25 + dense + sparse (SPLADE) hibrit arama 
+ Query rewriting: kullanıcı sorgusunu LLM ile genişlet (multi-query retrieval) 
+ HyDE (Hypothetical Document Embeddings) denemesi 
+ Filtering: metadata (kategori, fiyat aralığı) ile pre-filter 
+Hafta 7 — Evaluation + RAGAS 
+ RAGAS kurulumu: faithfulness, answer_relevancy, context_precision, context_recall 
+ 50 sentetik test sorgusu oluştur (GPT-4o ile) 
+ Baseline (Ay 1) vs v2 karşılaştırması — tablolu rapor 
+ TruLens ile trace-level evaluation denemesi  LangSmith / Langfuse'te sonuçları dashboard olarak göster 
+Hafta 8 — AI Safety + Structured Output + Edge Cases 
+ Prompt injection testleri: 10 saldırı senaryosu yaz (Simon Willison'ın listesi referans) 
+ OpenAI Moderation API entegrasyonu — input + output moderation 
+ Pydantic structured output zorunluluğu: LLM cevabı parsable değilse otomatik retry 
+ End-user IDs in prompts: her request'e user_id inject et (abuse detection için) 
+ Output constraining: 'bu agent sadece ürün sorularına cevap verir' system prompt + rejection handler 
+ Edge case test suite (Cursor'a API docs ver, 30 saçma + alakalı soru üret): hepsini logla, %95 başarı 
+hedefi 
+ Blog post #8: 'RAG v1 vs v2: 47% improvement in faithfulness' (gerçek rakamlarla) 
+Ay 2 Flagship Proje: 'E-Commerce RAG v2 + Safety Layer' 
+ RAGAS metrikleri: faithfulness ≥ 0.85, answer_relevancy ≥ 0.80, context_precision ≥ 0.75 
+ Safety: 10 prompt injection testinin hepsini geçecek, OpenAI moderation aktif 
+ Structured output: her LLM çağrısı Pydantic schema ile validate 
+ Edge case: 30 saçma soru test suite, %95 başarı 
+ Blog post serisi: 4 post (chunking, reranking, RAGAS, safety) 
+  10. Ay 3 — Open-Source Models + Fine-tuning 
+Şu anda LoRA/QLoRA yapıyorsun ama notebook düzeyinde. Ay 3'ün amacı fine-tuning öğrenmek değil — 
+fine-tuned bir modeli production'a çıkarmak, base model ile karşılaştırmak, portfolyoda 'burada çalışıyor, 
+test et' diye gösterebilmek. 
+roadmap.sh kapsamı / roadmap.sh Coverage 
+ Open vs Closed Source Models — artı/eksi karşılaştırma 
+ Popular Open Source Models — Llama 3.1, Llama 3.2, Qwen 2.5, Mistral, Phi-3, Gemma-2 
+ Hugging Face Hub — model ararken nasıl filtreleme, license kontrolü 
+ Hugging Face Tasks (pipeline API) 
+ Inference SDK — HuggingFace Inference API (ücretsiz + paid endpoints) 
+ Transformers.js — tarayıcıda model çalıştırma (opsiyonel ama cool demo) 
+ Ollama — local inference, Ollama Models, Ollama SDK 
+ Fine-tuning — when, why, cost-benefit 
+ OpenAI Fine-tuning API — kıyaslama için bir kez dene 
+ Open-Source Fine-tuning — LoRA, QLoRA, SFT, DPO (DPO giriş düzeyi) 
+Hafta 9 — Open-Source Model Landscape + Ollama 
+ Llama 3.1 8B, Qwen 2.5 7B, Mistral 7B — karşılaştırmalı benchmark (MMLU, HumanEval, quality) 
+ Ollama kurulumu — llama3.1, qwen2.5, mistral modellerini çek 
+ Ollama SDK ile basit servis — /generate endpoint 
+ Local vs API: latency, cost, quality karşılaştırma tablosu 
+ vLLM giriş (opsiyonel — GPU erişimin varsa) 
+Hafta 10 — Dataset Hazırlığı 
+ E-ticaret ürün açıklama dataset'i: 5-10K (ürün_başlık, özellikler) → ürün_açıklama çiftleri 
+ Kaggle'dan (Amazon Product, Flipkart) base al, temizle, format'la 
+ Train/val/test split (80/10/10) 
+ HuggingFace Dataset formatı — pusha hazır 
+ Veri kalite kontrol: duplicate check, length dist, category balance 
+Hafta 11 — LoRA Fine-tuning Sprint 
+ Unsloth kurulumu (3-4x hızlı + daha az VRAM) 
+ Base: Llama-3.1-8B-Instruct, target: ürün açıklama üretici 
+ Hyperparameters: r=16, alpha=32, target_modules=['q_proj','k_proj','v_proj','o_proj'] 
+ Training: 3 epoch, lr=2e-4, cosine schedule, batch 4 
+ Evaluation: BLEU, ROUGE-L, manuel 50 örnek karşılaştırma (human eval) 
+ Başarısız deneme = başarı: 1-2 denemen patlayacak, neden patladığını yaz (blog post material) Hafta 12 — Production Deploy + Comparison 
+ Fine-tuned model'i HuggingFace Hub'a push et 
+ Option A: HF Inference Endpoints ($0.06/saat) — hızlı ama devamlı açık maliyetli 
+ Option B: Ollama ile VPS üzerinde host et — GPU'lu VPS ($50-100/ay) veya CPU yavaş 
+ Option C: Replicate.com — per-request pricing, demo için ideal 
+ /generate-description endpoint — FastAPI üstünden 
+ A/B test: gpt-4o-mini vs fine-tuned Llama-3.1 — 100 ürün üzerinde 
+ Karşılaştırma raporu: quality, cost, latency, token efficiency 
+Ay 3 Flagship Proje: 'Fine-tuned Llama-3.1 E-Commerce Description Generator' 
+ HuggingFace Hub'da public model (README ile) 
+ Canlı URL: /generate-description — 24/7 erişilebilir 
+ A/B test raporu: fine-tuned model gpt-4o-mini'ye karşı metric tablosu 
+ Blog post serisi: 3 post (dataset prep, training, deployment & comparison) 
+ LinkedIn post: 'Fine-tuned a Llama-3.1 for e-commerce in 1 week — here's what I learned' 
+  11. Ay 4 — AI Agents + MCP + Multimodal 
+Bu ay sektörel farkı yaratıyorsun. E-ticaret + agent + multimodal = nadir ve çok değerli bir kombinasyon. 
+Video'daki 'fotoğrafla ürün ara + SQL agent' örneği tam bu ayın kalbi. 
+roadmap.sh kapsamı / roadmap.sh Coverage 
+ AI Agents — RAG Alternative, Agents Usecases 
+ Prompt Engineering (Advanced) — ReAct Prompting, Tree of Thoughts 
+ Manual Implementation — LangChain olmadan agent yazmak 
+ OpenAI Functions / Tools 
+ OpenAI Assistant API 
+ Building AI Agents — planner, executor, reflection, memory 
+ MCP (Model Context Protocol) — Anthropic'in standardı, tool registry 
+ Multimodal AI — Image Understanding, Image Generation, Video Understanding, Audio Processing, 
+Text-to-Speech, Speech-to-Text 
+ OpenAI Vision API 
+ DALL-E API 
+ Whisper API 
+ Hugging Face Multimodal Models (CLIP, BLIP-2) 
+ Implementing Multimodal AI 
+Video'dan Altın Kurallar Bu Ay Uygulanacak / Golden Rules Applied 
+ LangChain EXCEPTION — SQL Agent için LangChain kullan (video'nun tek izin verdiği kütüphane) 
+ Sektörel multimodal: 'kullanıcı fotoğraf yükler, benzer ürün arar' (video'dan birebir örnek) 
+ Multi-tool agent: 4-5 tool kullanan agent için yüksek reasoning modeli (gpt-4o veya claude-sonnet) 
+Hafta 13 — Manuel Agent Implementation (LangChain'siz) 
+ ReAct pattern'i manuel yaz: Thought → Action → Observation → Thought → ... 
+ Tool registry — Python dict, her tool Pydantic schema ile tanımlı 
+ OpenAI Function Calling / Tool Calling direct SDK 
+ Anthropic tool_use API 
+ Memory: short-term (son 10 mesaj), long-term (Postgres'e özetleme ile) 
+ Reflection: agent cevabı kendi değerlendiriyor, gerekirse yeniden deniyor 
+Hafta 14 — Multimodal: CLIP + Image Search 
+ CLIP (openai/clip-vit-base-patch32) ile görsel embedding 
+ 1000 ürün görselini embed et, pgvector'e yaz 
+ /visual-search endpoint: kullanıcı fotoğraf yükler, benzer ürünleri döner 
+ Hybrid: görsel + metin (ürün başlık) — dual-encoder setup 
+ OpenAI Vision API karşılaştırma (GPT-4o mini'nin 'ne görüyor' çıktısıyla) 
+ Whisper: sesli ürün arama (opsiyonel, sadece demo için) Hafta 15 — SQL Agent (LangChain exception) + MCP 
+Bu hafta videodaki 'LangChain istisnası' tam olarak çalışıyor. SQL Agent'ı niye sıfırdan yazmadığını anlamak 
+için ilk gün LangChain'siz prototip de deneyeceksin — 'ah evet bu gerçekten zormuş' deneyimi 
+roadmap.sh'in kavramları kadar değerli. 
+ Pzt — Naïve prototip (AI'la): LangChain olmadan sıfırdan SQL Agent denemesi. Schema introspection + 
+tek seferde SQL üretimi. 5 farklı sorgu test et, kaç tanesi başarılı? (Tahmin: 1-2) 
+ Sal — Iterative correction loop ekle: LLM hata aldı mı geri besle, düzeltsin. Hala bazı sorgular hatalı. Bu 
+noktada gözlem: 'doğru çözüm karmaşık, vakit götürür' — videodaki adamın söylediği şey 
+ Çar — LangChain SQLDatabaseToolkit + create_sql_agent: Postgres'e bağla. Aynı 5 sorguyu çalıştır — 
+kaç tanesi başarılı? (Tahmin: 5'inin 4-5'i) 
+ Per — Güvenlik katmanı: read-only Postgres user oluştur, statement_timeout=5s, ROW_LIMIT 1000. 
+SQL injection testleri yaz 
+ Cum — Dialect awareness: aynı agent'ı SQLite'a bağla, fark gör. Agent'ın PostgreSQL'e özgü features'ı 
+(ILIKE, RETURNING, JSONB) kullanabiliyor mu kontrol et 
+ Cmt — Few-shot examples: 5-10 domain-specific query örneği prompt'a inject et ('en çok satan ürün', 
+'son 30 gün ortalama sipariş tutarı'). Quality artışı ölç 
+ Paz — Blog post #14: 'Why I Use LangChain for SQL Agent (and Nothing Else)' — naïve denemenden 
+gerçek rakamlarla 
+Hafta 15 (devamı) — MCP 
+ MCP server yazma: Anthropic MCP SDK ile custom tool registry 
+ Tools: search_products, get_product_details, compare_prices, check_stock, analyze_trend 
+ Claude Desktop veya başka MCP client ile entegrasyon testi 
+ MCP'nin SQL Agent'ı bir tool olarak expose etme — Claude Desktop'tan e-ticaret DB'ne sorgu atılabilir 
+Hafta 16 — Multi-Agent Sales Assistant 
+ Planner agent: kullanıcı isteğini analiz et, hangi alt-agent'lara delege edilecek 
+ Search agent: ürün arama (RAG + CLIP) 
+ Compare agent: fiyat/özellik karşılaştırma (SQL Agent) 
+ Stock agent: stok durumu kontrol 
+ Summarizer agent: cevapları birleştir, structured output 
+ End-to-end test: 'kadınlara kış için hediye, bütçem 1500 TL, boyu 170 cm' tarzı kompleks sorgu 
+ Cost analysis: multi-agent orchestration tek bir gpt-4o call'a kıyasla 
+Ay 4 Flagship Proje: 'Multimodal Multi-Agent E-Commerce Assistant' 
+ Görsel arama endpoint (CLIP) 
+ 4 tool'lu agent orchestration 
+ MCP server public — başkaları Claude Desktop'ta kullanabilsin 
+ Demo video: 3 dakikalık end-to-end kullanım senaryosu 
+ Blog post serisi: 4 post (manuel agent, CLIP search, MCP, multi-agent) 
+ GitHub star hedef: 20+ (teknik topluluk burası tanır)   12. Ay 5 — LLMOps + Polish + Job Hunt 
+Artık 4 flagship projen var. Bu ay onları ciladan, portfolio sitene topla, iş görüşmelerine hazırlan. Teknik 
+öğrenmeden çok 'satış ve operasyonel olgunluk' ayı. 
+roadmap.sh kapsamı / roadmap.sh Coverage 
+ Development Tools — AI Code Editors (Cursor, Windsurf), Code Completion Tools (Copilot) 
+ LLMOps — Langfuse, Phoenix (Arize), W&B, MLflow (LLM-specific) 
+ Prompt Versioning 
+ Semantic Cache — GPTCache, custom implementation 
+ Model Gateway — LiteLLM benzeri fallback + rate limiting 
+Hafta 17 — Observability + Monitoring 
+ Langfuse ile tüm 4 projeyi tracing'e bağla 
+ Phoenix (Arize) ile RAG eval dashboard 
+ Alerting: cost spike, latency spike, error rate 
+ User feedback loop: thumbs up/down → evaluation dataset'e ekleme 
+ Prompt versioning: Git benzeri, her prompt değişikliği versiyonlu 
+Hafta 18 — Performance Optimization 
+ Semantic cache: aynı/benzer sorgulara cached response — 30-50% cost reduction 
+ Batch processing: çoklu embedding request'leri birleştir 
+ Streaming response: user-facing endpoint'lerde SSE 
+ Model routing: basit sorgu → mini, kompleks → büyük model 
+ Load testing: locust/k6 ile 100 concurrent user 
+Hafta 19 — Portfolio Sitesi + CV + LinkedIn 
+ Portfolio site: Next.js veya Astro, 4 flagship proje vitrini 
+ Her proje için: screenshot, demo video, metrics, tech stack, GitHub link, canlı URL 
+ CV revize: projeleri STAR formatında yaz (Situation, Task, Action, Result) 
+ LinkedIn: headline 'Junior AI Engineer | RAG, Fine-tuning, Multimodal | E-commerce focus' 
+ 3 LinkedIn post/hafta schedule: 1 tech deep-dive + 1 lesson learned + 1 project update 
+ Medium/Dev.to'ya 4 blog post cross-post 
+Hafta 20 — Iş Arama + Mülakat Hazırlık 
+ 30 junior AI engineer başvurusu: LinkedIn + Trendyol/Hepsiburada/Getir career pages + StartupJobs.co 
++ Wellfound 
+ Referans network: Google AI Academy fellow'lara ulaş 
+ Mülakat hazırlık: 20 LeetCode AI-common (dict ops, 2-pointer, DP basics) — AI kapalı 
+ System design: 'design a RAG system for 10M products' tarzı sorular — 5 mock tasarım 
+ Take-home örnekleri: GitHub'da 'AI engineer take home' arama, 2-3 tanesini yap  Mock interview: arkadaş/mentor ile 3 tane 
+Ay 5 Deliverables 
+ Portfolio sitesi — canlı URL 
+ 4 flagship proje — hepsi canlı URL, metriklerle birlikte 
+ Güncel CV (STAR formatında) 
+ Yenilenmiş LinkedIn profili + 20 post (5 ay boyunca) 
+ 30 başvuru + en az 5 görüşme 
+ Potansiyel teklif hedefi: 1+ junior AI engineer teklifi 
+  13. 4 Flagship Proje — Detaylı Spesifikasyonlar / 
+Flagship Project Specs 
+Proje 1 — E-Commerce Product Search Chatbot (Ay 1-2) 
+Tek Cümlelik Özet 
+Kullanıcı doğal dilde ürün sorar, RAG ile en uygun 5 ürünü önerir, fiyat ve özellik karşılaştırması yapar. 
+Stack 
+ FastAPI + Pydantic + Postgres + pgvector + OpenAI + Caddy + VPS 
+Değer önerisi / Value Proposition 
+ Ay 1: Prototip (v1) 
+ Ay 2: Production-grade — RAGAS metrikleri, safety layer, edge case suite 
+Başarı metrikleri / Success Metrics 
+ Faithfulness ≥ 0.85 (RAGAS) 
+ Precision@5 ≥ 0.75 
+ p95 latency < 2s 
+ Daily cost < $0.50 
+Proje 2 — Fine-tuned Llama Product Description Generator (Ay 3) 
+Tek Cümlelik Özet 
+Ürün başlığı ve özelliklerini alıp SEO uyumlu, pazarlama tonlu ürün açıklaması üreten fine-tuned Llama-3.1 
+8B. 
+Stack 
+ Unsloth + HuggingFace + Ollama/Replicate + FastAPI 
+Başarı metrikleri 
+ BLEU > 25, ROUGE-L > 0.45 
+ Human eval: 50 örneğin ≥ %70'i fine-tuned versiyonu tercih etsin 
+ Cost/1000 description: gpt-4o-mini'den %40 ucuz Proje 3 — Visual Product Search + SQL Agent (Ay 4) 
+Tek Cümlelik Özet 
+Kullanıcı bir ürün fotoğrafı yükler, CLIP ile görsel olarak benzer ürünler bulunur + SQL Agent DB'den ek bilgi 
+çeker. 
+Stack 
+ CLIP (HuggingFace) + pgvector + LangChain SQL Agent + FastAPI 
+Başarı metrikleri 
+ Top-5 visual accuracy ≥ %80 (human eval) 
+ SQL Agent 10 test sorgusunun 10'unu çözsün 
+ Query timeout < 5s 
+Proje 4 — Multi-Agent Sales Assistant with MCP (Ay 4) 
+Tek Cümlelik Özet 
+Planner, Search, Compare, Stock, Summarizer ajanlarının orchestrate edildiği, MCP üzerinden Claude 
+Desktop'tan da kullanılabilen e-ticaret asistanı. 
+Stack 
+ OpenAI Function Calling + Anthropic MCP SDK + Postgres + CLIP + SQL Agent 
+Başarı metrikleri 
+ 5 kompleks senaryoda (multi-step reasoning) ≥ %80 başarı 
+ MCP server public — Claude Desktop'ta plug-and-play çalışsın 
+ Cost per conversation < $0.05 
+Secondary Showcase — KaloriLens-2 (Ay 5'te 1 haftalık refresh) 
+Tek Cümlelik Özet 
+Mevcut KaloriLens'e LLM-tabanlı beslenme önerisi katmanı ekle (RAG üzerinden beslenme veritabanı). 
+Amaç 
+ Portfolyoda 'AI + health' vitrini tutmak 
+ Sektör değiştirmen gerektiğinde sıçrama noktası 
+  14. Kaynaklar — Ay Ay Sıralı / Resources — Ordered 
+by Month 
+Her Ay Sürekli (Always-On) 
+ roadmap.sh/ai-engineer — resmi yol haritası 
+ Simon Willison blog (simonwillison.net) — AI Engineer'ın haftalık okuduğu en iyi blog 
+ Hacker News 'Show HN' ve 'Ask HN' — haftalık 30 dk tarama 
+ The Batch by DeepLearning.AI — haftalık bülten 
+Ay 0 
+ roadmap.sh Introduction section (tam okuma) 
+ 'What is an AI Engineer?' — Chip Huyen blog post 
+Ay 1 — Fundamentals + RAG v1 
+ Karpathy — 'Let's build GPT from scratch' (YouTube) 
+ 'Attention is All You Need' paper (orijinal) 
+ OpenAI Cookbook — RAG, embeddings, function calling 
+ 'The Illustrated Transformer' — Jay Alammar 
+ FastAPI official tutorial (tam oku) 
+Ay 2 — Advanced RAG + Safety 
+ Anthropic — 'Contextual Retrieval' blog post 
+ RAGAS documentation + paper 
+ Simon Willison — 'Prompt Injection' derlemesi 
+ OpenAI Moderation API docs 
+ 'Prompt Engineering Guide' (promptingguide.ai) 
+Ay 3 — Open-Source + Fine-tuning 
+ HuggingFace 'NLP Course' (free) 
+ Unsloth documentation + notebooks 
+ Sebastian Raschka — 'Understanding LoRA' blog series 
+ 'Fine-tune Llama-3 in 5 steps' — Philipp Schmid 
+ Direct Preference Optimization (DPO) paper (giriş düzeyi) 
+Ay 4 — Agents + Multimodal 
+ Anthropic — 'Building effective agents' blog post 
+ Anthropic MCP documentation 
+ OpenAI — Function Calling guide 
+ CLIP paper (OpenAI) — giriş düzeyi okuma 
+ 'Multi-agent systems' — Harrison Chase (LangChain) — sadece kavramsal, kod için referans değil Ay 5 — LLMOps + Job Hunt 
+ Langfuse documentation 
+ Phoenix (Arize) documentation 
+ Hamel Husain blog — 'Your AI Product Needs Evals' 
+ 'Designing Machine Learning Systems' — Chip Huyen (kitap) 
+ System Design Interview — Alex Xu (kitap, Vol 2'de LLM sistem tasarımı var) 
+Türkçe Kaynaklar / Turkish Resources 
+ Seninle paylaştığın YouTube videosu + kanal 
+ Cagatay Yigit Tr AI çalışmaları (YouTube) 
+ Global AI Hub (Türkiye) — atölye ve mentor programları 
+ Google AI Academy Türkiye cohort'un — network 
+  15. Kırmızı Çizgiler / Red Lines 
+Bunları her ay tekrar oku. Bunlardan biri ihlal ediliyorsa, o hafta kaybedilmiş haftadır. 
+Read these every month. If any of these is violated, that week is a lost week. 
+ Hiçbir PR cost logging olmadan merge edilmez / No PR merges without cost logging 
+ Hiçbir proje localhost'ta kalmaz / No project stays on localhost — her proje canlı URL'de 
+ LangChain/CrewAI default değil / LangChain/CrewAI not the default — agent/RAG/chatbot için SDK + 
+Pydantic. SQL Agent gibi battle-tested complex tooling istisnadır (sebep: schema introspection + 
+iterative correction + dialect handling sıfırdan yazılmaz) 
+ Structured output (Pydantic) zorunlu / Structured output (Pydantic) is mandatory — raw string cevap 
+kabul edilmez 
+ Her haftanın sonunda 1 blog/LinkedIn post / 1 blog/LinkedIn post at end of every week — minimum 
+500 kelime 
+ Her flagship proje sektöre özel olacak / Every flagship project is industry-specific — generic chatbot yok 
+ Her ay 1 flagship proje bitmiş + deployed olacak / One flagship project shipped each month — 'devam 
+ediyor' kabul edilmez 
+ AI'ın yazdığı kodu anlamadan merge etmek yasak / No merging AI-written code you don't understand — 
+Pattern 1 (Reading Drill) zorunlu 
+ Plan drilli her feature'dan önce yapılır / Planning drill before every new feature — 30 dk pen-and-paper 
+ Blockers.md her gün güncellenir / blockers.md updated every day — ay sonu retrospektifte kullanılır 
+16. Başarı Metrikleri — Ay Ay / Success Metrics — 
+Monthly 
+Ay / 
+Month 
+Teknik / Technical Görünürlük / Visibility İş / Career 
+Ay 0 Starter repo çalışır durumda LinkedIn post #1 CV taslak v1 
+Ay 1 RAG v1 canlı URL, Precision@5 ≥ 0.7 4 blog post + 1 demo video GitHub pinned güncellendi 
+Ay 2 RAGAS faithfulness ≥ 0.85, safety 
+%100 
+4 post + RAGAS sonuç raporu LinkedIn 1. tanınırlık postu viral 
+hedefi 
+Ay 3 Fine-tuned model canlı URL + A/B 
+test 
+3 post + HF Hub model public 1. junior AI engineer başvurusu 
+Ay 4 Multi-agent asistan + MCP server 
+public 
+4 post + 3dk demo video + 
+GitHub 20+ star 
+5+ başvuru, 1+ görüşme 
+Ay 5 Portfolio sitesi + 4 proje canlı Portfolio + 3 post/hafta 30 başvuru, 5+ görüşme, 1+ 
+teklif 
+ 17. AI Engineer vs ML Engineer — Rol Netleştirme / 
+Role Clarification 
+Video'da ilk önerilen şey: bu ikisinin farkını anlaman. Çünkü iş ilanı başlıkları karışıyor, sen hangi pozisyona 
+başvurduğunu bilmelisin. 
+Boyut / Dimension AI Engineer ML Engineer 
+Ana odak / Main focus LLM'leri (pre-trained) API üzerinden 
+kullanarak uygulama kurmak 
+Modeli kendisi eğitmek, deploy etmek, 
+performansı izlemek 
+Stack FastAPI, LLM SDK, vector DB, RAG, 
+prompt engineering 
+PyTorch/TF, MLflow, Kubeflow, feature 
+store, Airflow 
+Matematik derinlik Orta (embedding, attention kavramsal) Yüksek (gradient, optimization, statistics) 
+Deployment LLM backend + API as a service Model serving (BentoML, TorchServe, 
+SageMaker) 
+Günlük iş Prompt tune, RAG tweak, agent design, 
+cost optim 
+Training pipeline, feature engineering, 
+A/B test 
+Junior başvuru 
+yoğunluğu 2026 
+Yüksek ve artıyor Orta, daha fazla deneyim isteniyor 
+Senin hedef 
+pozisyonun 
+EVET — bu Hayır (şimdilik) 
+ 
+Sen AI Engineer yoluna gidiyorsun. Andrew Ng ML Specialization arka planın ML Engineer rolüne de geçebilir 
+sağlam temel sağlıyor — ama önce AI Engineer olarak işe girip production deneyimi biriktir. 
+18. Ek Dosyalar Notu / Note on Extra Files 
+Daha önceki sohbette üç ek dosya oluşturmuştum: Ay1_Haftalik_Plan.md, AI_Off_Drills.md, starter-repo 
+(zip). Bunların kritik olanları bu ana dokümana entegre edildi: Ay 1 haftalık breakdown bu dosyanın 8. 
+bölümünde, AI-off yaklaşımı ise 3. bölümdeki 'Üç Drill Pattern'de. Starter repo klasörü hala kullanışlı — Ay 
+0'da klonlayıp çalıştıracağın iskelet o. 
+Yani: bu docx dosyası artık tek referansın. Diğer dosyalar destekleyici. İstersen silebilirsin, istersen 
+tutabilirsin. 
+19. Bu Haftaki Adımın / Your Step This Week 
+Sabaha kadar düşünme. Bu 5 şeyi 48 saat içinde yap: 
+ 1. Bu dokümanı tamamen oku (1-2 saat), Notion'a highlights kaydet 
+ 2. Ay 0 checklist'inin ilk 5 maddesini bitir (starter repo + API key + GitHub README + LinkedIn headline + 
+Notion terminoloji sözlüğü) 
+ 3. Cumartesiden önce LinkedIn post #1 paylaş — 'Yolculuk başlıyor' 
+ 4. blockers.md dosyasını oluştur — ilk girişi yap: 'Ay 0 başladı, [tarih]' 
+ 5. Ay 1 Pazartesi başlamaya hazır ol — starter repo'da docker-compose çalışıyor olacak Takıldığın yerde, logger'ı bitirdiğinde, ilk canlı URL'yi aldığında bana haber ver. Her adımda revize ederiz. 
+ 
+— Başarılar / Good luck — 

@@ -6,6 +6,7 @@ Use httpx.AsyncClient + ASGITransport against app.main.app.
 import pytest
 
 
+@pytest.mark.skip(reason="AI-off homework")
 @pytest.mark.asyncio
 async def test_root_returns_name():
     # TODO (AI-off):
@@ -16,6 +17,7 @@ async def test_root_returns_name():
     raise NotImplementedError("Fill in by hand.")
 
 
+@pytest.mark.skip(reason="AI-off homework")
 @pytest.mark.asyncio
 async def test_health_returns_ok_when_db_up():
     raise NotImplementedError("Fill in by hand.")

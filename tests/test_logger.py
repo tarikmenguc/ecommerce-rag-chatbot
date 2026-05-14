@@ -16,6 +16,7 @@ def test_llmcall_cost_math_for_gpt4o_mini():
     # total = $0.00045
     call = LlmCall(
         caller="t",
+        api_key="test-key",
         model="gpt-4o-mini",
         input_tokens=1000,
         output_tokens=500,

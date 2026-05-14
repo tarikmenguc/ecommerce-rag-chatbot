@@ -16,6 +16,9 @@ pgvector==0.3.3
 anthropic==0.34.2
 sentence-transformers>=2.7.0
 
+# --- Search / Ranking ---
+rank-bm25==0.2.2
+
 # --- Data Processing ---
 pandas>=2.0.0
 numpy>=1.26.0

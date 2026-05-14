@@ -6,8 +6,6 @@ Week 1 contract:
 
 DELIBERATELY INCOMPLETE: the logger call is a TODO. You wire it up AI-off.
 """
-from __future__ import annotations
-
 import time
 
 from fastapi import APIRouter, Depends, HTTPException, Request

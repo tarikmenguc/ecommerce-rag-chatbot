@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import time
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession

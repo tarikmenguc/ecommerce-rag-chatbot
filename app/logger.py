@@ -53,6 +53,7 @@ class CostCapExceeded(Exception):
 @dataclass
 class LlmCall:
     caller: str
+    api_key: str
     model: str
     input_tokens: int
     output_tokens: int
@@ -93,29 +94,41 @@ async def log_llm_call(call: LlmCall) -> None:
 
     async with session_scope() as session:
 
-        # ADIM 1 — Bugünkü toplam harcamayı veritabanından sorgula
-        # func.date() ile datetime sütununun sadece tarih kısmını alıyoruz
+        # ADIM 1 — Bugünkü toplam harcamayı veritabanından sorgula (Global)
         today = datetime.now(tz=timezone.utc).date()
         result = await session.execute(
             select(func.sum(LlmCallLog.total_cost_usd)).where(
                 func.date(LlmCallLog.created_at) == today
             )
         )
-        # scalar() tek bir değer döndürür; None gelebileceği için "or 0.0" koyuyoruz
         daily_total: float = result.scalar() or 0.0
 
-        # ADIM 2 — Günlük bütçe kontrolü
-        # Yeni isteğin maliyetini de ekleyerek kontrol ediyoruz.
-        # Böylece bu çağrı sınırı aşıyorsa kaydetmeden önce hata fırlatılır.
+        # ADIM 1.5 — Kullanıcı bazlı harcamayı sorgula (Per-User)
+        user_result = await session.execute(
+            select(func.sum(LlmCallLog.total_cost_usd)).where(
+                func.date(LlmCallLog.created_at) == today,
+                LlmCallLog.api_key == call.api_key
+            )
+        )
+        user_daily_total: float = user_result.scalar() or 0.0
+
+        # ADIM 2 — Günlük bütçe kontrolü (Global & Per-User)
         if daily_total + call.total_cost_usd > settings.daily_cost_cap_usd:
             raise CostCapExceeded(
-                f"Günlük maliyet sınırı aşıldı: "
+                f"Global günlük maliyet sınırı aşıldı: "
                 f"${daily_total + call.total_cost_usd:.4f} > ${settings.daily_cost_cap_usd:.4f}"
+            )
+            
+        if user_daily_total + call.total_cost_usd > settings.user_daily_cost_cap_usd:
+            raise CostCapExceeded(
+                f"Kullanıcı günlük maliyet sınırı aşıldı: "
+                f"${user_daily_total + call.total_cost_usd:.4f} > ${settings.user_daily_cost_cap_usd:.4f}"
             )
 
         # ADIM 3 — Bütçe aşılmadıysa kaydı veritabanına ekle (INSERT)
         row = LlmCallLog(
             caller=call.caller,
+            api_key=call.api_key,
             model=call.model,
             input_tokens=call.input_tokens,
             output_tokens=call.output_tokens,

@@ -11,6 +11,9 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.db import Base, engine
 from app.logger import CostCapExceeded  # Kendi özel hata sınıfımız
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
 from app.routers import chat, health, search
 
 settings = get_settings()
@@ -38,6 +41,9 @@ app = FastAPI(
 app.include_router(health.router)
 app.include_router(chat.router)
 app.include_router(search.router)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 # CostCapExceeded hatası fırlatıldığında bu fonksiyon otomatik devreye girer.

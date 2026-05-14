@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import time
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
 from app.llm import chat_completion
+from app.limiter import limiter
+from app.auth import verify_api_key
 from app.logger import LlmCall,log_llm_call #  <- enable after you implement it
 from app.models import Interaction
 from app.schemas import ChatRequest, ChatResponse
@@ -23,9 +25,12 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.post("", response_model=ChatResponse)
+@limiter.limit("10/minute")
 async def post_chat(
+    request: Request,
     req: ChatRequest,
     session: AsyncSession = Depends(get_session),
+    api_key: str = Depends(verify_api_key),
 ) -> ChatResponse:
     messages: list[dict[str, str]] = []
     if req.system_prompt:
@@ -41,6 +46,7 @@ async def post_chat(
 
     call = LlmCall(
         caller="chat.post_chat",
+        api_key=api_key,
         model=req.model or "gpt-4o-mini",
         input_tokens=in_tok,
         output_tokens=out_tok,

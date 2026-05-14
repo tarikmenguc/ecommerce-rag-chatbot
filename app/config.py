@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     embed_dimensions: int = 1024
 
     daily_cost_cap_usd: float = 0.50
+    user_daily_cost_cap_usd: float = 0.10
+    admin_api_key: str = "tarik-proje"
 
     @property
     def database_url(self) -> str:

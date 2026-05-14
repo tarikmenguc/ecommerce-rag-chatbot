@@ -18,6 +18,7 @@ class LlmCallLog(Base):
         DateTime(timezone=True), server_default=func.now(), index=True
     )
     caller: Mapped[str] = mapped_column(String(128), index=True)
+    api_key: Mapped[str] = mapped_column(String(64), index=True, server_default="unknown")
     model: Mapped[str] = mapped_column(String(64), index=True)
     input_tokens: Mapped[int] = mapped_column(Integer)
     output_tokens: Mapped[int] = mapped_column(Integer)
@@ -35,6 +36,7 @@ class Interaction(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     user_query: Mapped[str] = mapped_column(Text)
+    api_key: Mapped[str] = mapped_column(String(64), server_default="unknown")
     model: Mapped[str] = mapped_column(String(64))
     answer: Mapped[str] = mapped_column(Text)
     cost_usd: Mapped[float] = mapped_column(Float, default=0.0)

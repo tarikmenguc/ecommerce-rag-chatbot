@@ -41,7 +41,7 @@ async def test_chat_returns_200_with_answer():
     try:
         with patch("app.routers.chat.chat_completion", new=AsyncMock(return_value=FAKE_LLM_RESPONSE)), \
              patch("app.routers.chat.log_llm_call", new=AsyncMock()):
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={"message": "Merhaba"})
     finally:
         app.dependency_overrides.clear()
@@ -55,7 +55,7 @@ async def test_chat_returns_200_with_answer():
 
 @pytest.mark.asyncio
 async def test_chat_empty_message_returns_422():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
         response = await ac.post("/chat", json={"message": ""})
 
   
@@ -69,7 +69,7 @@ async def test_chat_response_has_cost_and_tokens():
     try:
         with patch("app.routers.chat.chat_completion", new=AsyncMock(return_value=FAKE_LLM_RESPONSE)), \
              patch("app.routers.chat.log_llm_call", new=AsyncMock()):
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={"message": "Token testi"})
     finally:
         app.dependency_overrides.clear()
@@ -90,7 +90,7 @@ async def test_chat_returns_502_when_llm_fails():
     app.dependency_overrides[get_session] = fake_get_session
     try:
         with patch("app.routers.chat.chat_completion", new=AsyncMock(side_effect=RuntimeError("API down"))):
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={"message": "Hata testi"})
     finally:
         app.dependency_overrides.clear()
@@ -108,7 +108,7 @@ async def test_chat_with_system_prompt_returns_model_field():
     try:
         with patch("app.routers.chat.chat_completion", new=AsyncMock(return_value=FAKE_LLM_RESPONSE)), \
              patch("app.routers.chat.log_llm_call", new=AsyncMock()):
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={
                     "message": "Bana Python öğret",
                     "system_prompt": "Sen bir Python hocasısın.",

@@ -26,12 +26,14 @@ def test_llmcall_cost_math_for_gpt4o_mini():
     assert abs(call.total_cost_usd - 0.00045) < 1e-9
 
 
+@pytest.mark.skip(reason="AI-off homework")
 @pytest.mark.asyncio
 async def test_log_llm_call_persists_row():
     # TODO (AI-off): implement once logger.log_llm_call is real.
     raise NotImplementedError("Fill in by hand after logger is implemented.")
 
 
+@pytest.mark.skip(reason="AI-off homework")
 @pytest.mark.asyncio
 async def test_cost_cap_triggers():
     # TODO (AI-off): seed rows above the cap, call log_llm_call,

@@ -1,3 +1,14 @@
+"""Search router — V3 (Week 6: Hybrid search + HyDE + query expansion + filters).
+
+Pipeline:
+    1. (Optional HyDE)             Embed a hypothetical product description instead of raw query
+    2. (Optional query expansion)  Expand query into N alternatives via LLM
+    3. Embed query (+ alternatives if expansion enabled)
+    4. Hybrid search               BM25 + pgvector cosine via RRF, with category/price filters
+    5. CrossEncoder reranker       Top-5 from merged candidates
+    6. LLM synthesis               Claude Haiku → natural language answer
+"""
+import asyncio
 import time
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,10 +18,13 @@ from app.llm import embed, chat_completion
 from app.limiter import limiter
 from app.auth import verify_api_key
 from app.services.search_service import hybrid_search
+from app.services.reranker import rerank
+from app.services.query_expansion import rewrite_query, hyde_embed
 from app.logger import LlmCall, log_llm_call
 from app.schemas import ProductQuery, ProductSearchResponse, ProductHit
 
 router = APIRouter(prefix="/search", tags=["search"])
+
 
 @router.post("", response_model=ProductSearchResponse)
 @limiter.limit("10/minute")
@@ -21,74 +35,137 @@ async def post_search(
     api_key: str = Depends(verify_api_key),
 ) -> ProductSearchResponse:
     t0 = time.perf_counter()
-    
-    # 1. Embed user query
+
+    # ── Stage 1: Embed query (HyDE or standard) ───────────────────────────────
     try:
-        query_vectors = await embed([req.query])
-        query_vector = query_vectors[0]
+        if req.use_hyde:
+            # HyDE: embed a hypothetical product description instead of raw query
+            query_vector = await hyde_embed(req.query)
+        else:
+            query_vectors = await embed([req.query])
+            query_vector = query_vectors[0]
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Embedding error: {e}")
 
-    # 2. Hybrid search (Vector + BM25)
+    # ── Stage 2: (Optional) Query expansion → additional embeddings ───────────
+    extra_embeddings: list[list[float]] = []
+    if req.use_query_expansion:
+        try:
+            alternatives = await rewrite_query(req.query, n=3)
+            if alternatives:
+                extra_embeddings = await embed(alternatives)
+        except Exception as e:
+            # Non-fatal: fall back to single-query search
+            pass
+
+    # ── Stage 3: Hybrid search (BM25 + vector) for each query vector ──────────
+    filter_kwargs = dict(
+        category=req.category,
+        min_price=req.min_price,
+        max_price=req.max_price,
+        session=session,
+    )
+
     try:
-        results = await hybrid_search(req.query, query_vector, limit=req.top_k)
+        # Run primary query hybrid search
+        primary_candidates = await hybrid_search(
+            query=req.query,
+            query_embedding=query_vector,
+            limit=20,
+            **filter_kwargs,
+        )
+
+        # Run hybrid search for each expanded query and union results
+        if extra_embeddings:
+            extra_results = await asyncio.gather(*[
+                hybrid_search(
+                    query=req.query,
+                    query_embedding=vec,
+                    limit=10,
+                    **filter_kwargs,
+                )
+                for vec in extra_embeddings
+            ])
+            # Union: add candidates not already in primary (by chunk id)
+            seen_ids = {chunk.id for chunk, _ in primary_candidates}
+            for result_list in extra_results:
+                for chunk, product in result_list:
+                    if chunk.id not in seen_ids:
+                        seen_ids.add(chunk.id)
+                        primary_candidates.append((chunk, product))
+
+        candidates = primary_candidates
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Search error: {e}")
 
-    # 3. Build Hits for response
-    hits = [
-        ProductHit(
-            sku=p.sku,
-            title=p.title,
-            category=p.category,
-            price_usd=p.price_usd,
-            score=float(score)
-        )
-        for p, score in results
-    ]
+    if not candidates:
+        raise HTTPException(status_code=404, detail="No products found matching your query.")
 
-    # 4. LLM RAG Synthesis
-    context_parts = []
-    for p, score in results:
+    # ── Stage 4: CrossEncoder reranker → Top-K ────────────────────────────────
+    try:
+        reranked = await rerank(query=req.query, candidates=candidates, top_k=req.top_k)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Reranker error: {e}")
+
+    # ── Stage 5: Build response hits + RAG context ────────────────────────────
+    seen_skus: set[str] = set()
+    hits: list[ProductHit] = []
+    context_parts: list[str] = []
+
+    for chunk, product, rerank_score in reranked:
+        if product.sku not in seen_skus:
+            seen_skus.add(product.sku)
+            hits.append(
+                ProductHit(
+                    sku=product.sku,
+                    title=product.title,
+                    category=product.category,
+                    price_usd=product.price_usd,
+                    score=rerank_score,
+                )
+            )
         context_parts.append(
-            f"Product: {p.title}\nCategory: {p.category}\n"
-            f"Price: ${p.price_usd}\nDescription: {p.description}\n---"
+            f"[{chunk.chunk_type.upper()}] {chunk.content}\n"
+            f"Price: ${product.price_usd} | Rating: {product.avg_rating}/5"
         )
-    context = "\n".join(context_parts)
-    
+
+    context = "\n---\n".join(context_parts)
+
+    # ── Stage 6: LLM RAG synthesis ────────────────────────────────────────────
     system_prompt = (
-        "You are a helpful e-commerce assistant. Use the following product results "
-        "to answer the user's question. Be concise and professional. "
-        "If the products are not relevant, inform the user.\n\n"
-        f"CONTEXT:\n{context}"
+        "You are a helpful e-commerce assistant specializing in beauty and personal care products. "
+        "Use ONLY the product information provided below to answer the user's question. "
+        "Be concise, friendly, and specific. "
+        "If the context includes customer reviews, cite them to support your recommendation.\n\n"
+        f"PRODUCT CONTEXT:\n{context}"
     )
-    
+
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": req.query}
+        {"role": "user", "content": req.query},
     ]
-    
+
     try:
         answer, in_tok, out_tok = await chat_completion(messages)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM synthesis error: {e}")
-        
+
     latency_ms = (time.perf_counter() - t0) * 1000
-    
-   
+
     call = LlmCall(
         caller="search.post_search",
         api_key=api_key,
-        model="gpt-4o-mini",
+        model="claude-haiku-4-5-20251001",
         input_tokens=in_tok,
         output_tokens=out_tok,
-        latency_ms=latency_ms
+        latency_ms=latency_ms,
     )
     await log_llm_call(call)
-    
+
     return ProductSearchResponse(
         query=req.query,
         hits=hits,
         answer=answer,
-        cost_usd=call.total_cost_usd
+        cost_usd=call.total_cost_usd,
     )

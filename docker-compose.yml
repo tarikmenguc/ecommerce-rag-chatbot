@@ -20,6 +20,8 @@ services:
     env_file: .env
     environment:
       POSTGRES_HOST: db
+      # HuggingFace cache — model bir kez indirilir, container yeniden başlatılsa da tekrar indirilmez
+      HF_HOME: /hf_cache
     depends_on:
       db:
         condition: service_healthy
@@ -27,7 +29,10 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/code/app
+      # Host'taki HuggingFace cache klasörünü container'a bağla
+      - hf_model_cache:/hf_cache
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   pgdata:
+  hf_model_cache:

@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     gemini_api_key: str | None = None
 
-    default_chat_model: str = "claude-3-haiku-20240307"
+    default_chat_model: str = "claude-haiku-4-5-20251001"
     default_embed_model: str = "BAAI/bge-m3"
     embed_dimensions: int = 1024
 

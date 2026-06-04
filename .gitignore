@@ -29,3 +29,6 @@ Thumbs.db
 *.pdf
 eval_results.md
 blockers.md
+
+# Data directories
+data/

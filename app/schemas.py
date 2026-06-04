@@ -17,10 +17,24 @@ class ChatResponse(BaseModel):
 
 
 class ProductQuery(BaseModel):
-    """Week 2 — RAG search request."""
+    """Week 6 — RAG search request with hybrid search + metadata filters."""
     query: str = Field(min_length=2, max_length=512)
     top_k: int = Field(default=5, ge=1, le=20)
+
+    # Metadata filters (pre-filter before vector/BM25 search)
     category: str | None = None
+    min_price: float | None = Field(default=None, ge=0, description="Minimum price in USD")
+    max_price: float | None = Field(default=None, ge=0, description="Maximum price in USD")
+
+    # Search strategy flags
+    use_hyde: bool = Field(
+        default=False,
+        description="Use Hypothetical Document Embeddings instead of raw query embedding",
+    )
+    use_query_expansion: bool = Field(
+        default=False,
+        description="Expand query into N alternatives via LLM for multi-query retrieval",
+    )
 
 
 class ProductHit(BaseModel):

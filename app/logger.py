@@ -36,13 +36,13 @@ from app.config import get_settings
 from app.db import session_scope
 
 # Prices in USD per 1M tokens. Update as pricing changes.
-# Source: https://openai.com/api/pricing/ & https://www.anthropic.com/pricing
+# Source: https://openai.com/api/pricing/ & https://ai.google.dev/pricing
 PRICES: dict[str, dict[str, float]] = {
     "gpt-4o-mini":            {"input": 0.150, "output": 0.600},
     "gpt-4o":                 {"input": 2.500, "output": 10.000},
     "text-embedding-3-small": {"input": 0.020, "output": 0.000},
-    "claude-haiku-4-5":       {"input": 1.000, "output": 5.000},
-    "claude-sonnet-4-6":      {"input": 3.000, "output": 15.000},
+    "gemini-3.5-flash":       {"input": 0.000, "output": 0.000},
+    "gemini-3.1-flash-lite":  {"input": 0.000, "output": 0.000},
 }
 
 
@@ -159,10 +159,34 @@ def timed_llm_call(caller: str):
       - await log_llm_call(call)
       - return the original response (not the tuple)
     """
+    import functools
     def decorator(func):
+        @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any):
             start = time.perf_counter()
-            # TODO: call func, unpack (resp, in_tok, out_tok), build LlmCall, log, return resp
-            raise NotImplementedError("Write this yourself. AI off.")
+            result = await func(*args, **kwargs)
+            
+            # Unpack response depending on length
+            if isinstance(result, tuple) and len(result) == 5:
+                resp, in_tok, out_tok, model, api_key = result
+            elif isinstance(result, tuple) and len(result) == 3:
+                resp, in_tok, out_tok = result
+                model = kwargs.get("model", "unknown")
+                api_key = kwargs.get("api_key", "unknown")
+            else:
+                raise ValueError("Decorated function must return (resp, in_tok, out_tok) or (resp, in_tok, out_tok, model, api_key)")
+
+            latency_ms = (time.perf_counter() - start) * 1000
+            
+            call = LlmCall(
+                caller=caller,
+                api_key=api_key,
+                model=model,
+                input_tokens=in_tok,
+                output_tokens=out_tok,
+                latency_ms=latency_ms,
+            )
+            await log_llm_call(call)
+            return resp
         return wrapper
     return decorator

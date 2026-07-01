@@ -5,6 +5,7 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     model: str | None = None
     system_prompt: str | None = None
+    user_id: str | None = Field(default=None, description="End-user ID for abuse detection")
 
 
 class ChatResponse(BaseModel):
@@ -20,6 +21,7 @@ class ProductQuery(BaseModel):
     """Week 6 — RAG search request with hybrid search + metadata filters."""
     query: str = Field(min_length=2, max_length=512)
     top_k: int = Field(default=5, ge=1, le=20)
+    user_id: str | None = Field(default=None, description="End-user ID for abuse detection")
 
     # Metadata filters (pre-filter before vector/BM25 search)
     category: str | None = None

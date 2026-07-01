@@ -34,6 +34,12 @@ async def post_search(
     session: AsyncSession = Depends(get_session),
     api_key: str = Depends(verify_api_key),
 ) -> ProductSearchResponse:
+    from app.llm import check_moderation, ModerationFlagged
+    try:
+        await check_moderation(req.query)
+    except ModerationFlagged:
+        raise HTTPException(status_code=400, detail="Arama sorgunuz güvenlik politikalarımıza aykırıdır.")
+        
     t0 = time.perf_counter()
 
     # ── Stage 1: Embed query (HyDE or standard) ───────────────────────────────
@@ -137,26 +143,60 @@ async def post_search(
         "You are a helpful e-commerce assistant specializing in beauty and personal care products. "
         "Use ONLY the product information provided below to answer the user's question. "
         "Be concise, friendly, and specific. "
-        "If the context includes customer reviews, cite them to support your recommendation.\n\n"
+        "If the context includes customer reviews, cite them to support your recommendation.\n"
+        "IMPORTANT: You MUST return a JSON object with 'is_product_related' (boolean) and 'answer' (string). "
+        "If the user's query is completely unrelated to products or e-commerce, set 'is_product_related' to false.\n\n"
         f"PRODUCT CONTEXT:\n{context}"
     )
+    if req.user_id:
+        system_prompt += f"\n\n[System Note: Request from user_id: {req.user_id}]"
 
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": req.query},
     ]
 
+    from pydantic import BaseModel
+    
+    class AssistantOutput(BaseModel):
+        is_product_related: bool
+        answer: str
+
     try:
-        answer, in_tok, out_tok = await chat_completion(messages)
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                text, in_tok, out_tok = await chat_completion(messages, response_schema=AssistantOutput)
+                import json
+                try:
+                    if isinstance(text, str):
+                        parsed = AssistantOutput.model_validate_json(text)
+                    else:
+                        parsed = AssistantOutput.model_validate(text)
+                    
+                    if not parsed.is_product_related:
+                        answer = "Üzgünüm, sadece e-ticaret ve ürün arama konularında yardımcı olabilirim."
+                    else:
+                        answer = parsed.answer
+                    break
+                except Exception as parse_err:
+                    if attempt == max_retries - 1:
+                        raise ValueError(f"Failed to parse structured output: {parse_err}")
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise e
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM synthesis error: {e}")
 
     latency_ms = (time.perf_counter() - t0) * 1000
 
+    from app.config import get_settings
+    settings = get_settings()
+
     call = LlmCall(
         caller="search.post_search",
         api_key=api_key,
-        model="claude-haiku-4-5-20251001",
+        model=settings.default_chat_model,
         input_tokens=in_tok,
         output_tokens=out_tok,
         latency_ms=latency_ms,

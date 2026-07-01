@@ -18,7 +18,8 @@ from app.db import get_session
 from app.main import app
 
 # Sahte OpenAI cevabı: (metin, input_token, output_token)
-FAKE_LLM_RESPONSE = ("Merhaba! Nasıl yardımcı olabilirim?", 10, 20)
+# Updated to return valid JSON for the structured output logic
+FAKE_LLM_RESPONSE = ('{"is_product_related": true, "answer": "Merhaba! Nasıl yardımcı olabilirim?"}', 10, 20)
 
 
 # ---------------------------------------------------------------------------
@@ -40,7 +41,8 @@ async def test_chat_returns_200_with_answer():
     app.dependency_overrides[get_session] = fake_get_session
     try:
         with patch("app.routers.chat.chat_completion", new=AsyncMock(return_value=FAKE_LLM_RESPONSE)), \
-             patch("app.routers.chat.log_llm_call", new=AsyncMock()):
+             patch("app.routers.chat.log_llm_call", new=AsyncMock()), \
+             patch("app.llm.check_moderation", new=AsyncMock()):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={"message": "Merhaba"})
     finally:
@@ -49,7 +51,7 @@ async def test_chat_returns_200_with_answer():
     assert response.status_code == 200
     data = response.json()
     assert "answer" in data
-    assert data["answer"] == FAKE_LLM_RESPONSE[0]
+    assert data["answer"] == "Merhaba! Nasıl yardımcı olabilirim?"
 
 
 
@@ -68,7 +70,8 @@ async def test_chat_response_has_cost_and_tokens():
     app.dependency_overrides[get_session] = fake_get_session
     try:
         with patch("app.routers.chat.chat_completion", new=AsyncMock(return_value=FAKE_LLM_RESPONSE)), \
-             patch("app.routers.chat.log_llm_call", new=AsyncMock()):
+             patch("app.routers.chat.log_llm_call", new=AsyncMock()), \
+             patch("app.llm.check_moderation", new=AsyncMock()):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={"message": "Token testi"})
     finally:
@@ -89,7 +92,8 @@ async def test_chat_response_has_cost_and_tokens():
 async def test_chat_returns_502_when_llm_fails():
     app.dependency_overrides[get_session] = fake_get_session
     try:
-        with patch("app.routers.chat.chat_completion", new=AsyncMock(side_effect=RuntimeError("API down"))):
+        with patch("app.routers.chat.chat_completion", new=AsyncMock(side_effect=RuntimeError("API down"))), \
+             patch("app.llm.check_moderation", new=AsyncMock()):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={"message": "Hata testi"})
     finally:
@@ -107,7 +111,8 @@ async def test_chat_with_system_prompt_returns_model_field():
     app.dependency_overrides[get_session] = fake_get_session
     try:
         with patch("app.routers.chat.chat_completion", new=AsyncMock(return_value=FAKE_LLM_RESPONSE)), \
-             patch("app.routers.chat.log_llm_call", new=AsyncMock()):
+             patch("app.routers.chat.log_llm_call", new=AsyncMock()), \
+             patch("app.llm.check_moderation", new=AsyncMock()):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", headers={"X-API-Key": "tarik-proje"}) as ac:
                 response = await ac.post("/chat", json={
                     "message": "Bana Python öğret",

@@ -1,9 +1,11 @@
 """FastAPI entrypoint."""
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from sqlalchemy import text
 from app.config import get_settings
@@ -12,7 +14,7 @@ from app.logger import CostCapExceeded  # Kendi özel hata sınıfımız
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
-from app.routers import admin, chat, health, search
+from app.routers import admin, chat, health, search, description
 
 settings = get_settings()
 logging.basicConfig(level=settings.log_level)
@@ -40,6 +42,7 @@ app.include_router(health.router)
 app.include_router(chat.router)
 app.include_router(search.router)
 app.include_router(admin.router)
+app.include_router(description.router)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -55,6 +58,14 @@ async def cost_cap_handler(request: Request, exc: CostCapExceeded) -> JSONRespon
     )
 
 
+# Serve the CopyAI frontend at the root URL
+_public_dir = Path(__file__).parent.parent / "public"
+if _public_dir.exists():
+    app.mount("/ui", StaticFiles(directory=_public_dir, html=True), name="static")
+
 @app.get("/")
-async def root() -> dict:
+async def root():
+    index = _public_dir / "index.html"
+    if index.exists():
+        return FileResponse(index)
     return {"name": "ai-engineer-starter", "docs": "/docs"}

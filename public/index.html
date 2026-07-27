@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CopyAI — E-Commerce Description Generator</title>
+  <meta name="description" content="Generate compelling, SEO-friendly product descriptions using a locally fine-tuned Llama-3 model." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #f4f4f5;
+      --surface:    #ffffff;
+      --border:     #e4e4e7;
+      --border-focus: #a1a1aa;
+      --text-primary:   #18181b;
+      --text-secondary: #71717a;
+      --text-muted:     #a1a1aa;
+      --accent:     #4f46e5;
+      --accent-hover:#4338ca;
+      --accent-soft:#eef2ff;
+      --success:    #10b981;
+      --success-soft:#d1fae5;
+      --error:      #ef4444;
+      --error-soft: #fee2e2;
+      --shadow-sm:  0 1px 2px rgba(0,0,0,.05);
+      --shadow-md:  0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
+      --shadow-lg:  0 10px 15px -3px rgba(0,0,0,.07), 0 4px 6px -2px rgba(0,0,0,.04);
+      --radius-sm:  6px;
+      --radius-md:  10px;
+      --radius-lg:  14px;
+      --transition: 180ms cubic-bezier(.4,0,.2,1);
+    }
+
+    html { font-family: 'Inter', system-ui, sans-serif; font-size: 15px; }
+    body  { background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; }
+    .nav-brand svg { width: 28px; height: 28px; }
+    .nav-brand span { font-weight: 700; font-size: 1.05rem; color: var(--text-primary); letter-spacing: -.02em; }
+    .nav-badge {
+      font-size: .7rem; font-weight: 500; padding: 3px 10px;
+      background: var(--accent-soft); color: var(--accent);
+      border-radius: 99px; border: 1px solid #c7d2fe;
+    }
+
+    /* ── HERO ── */
+    .hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
+    .hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 700; letter-spacing: -.03em;
+      color: var(--text-primary); line-height: 1.2;
+    }
+    .hero p { margin-top: .5rem; color: var(--text-secondary); font-size: .95rem; }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      flex: 1;
+      max-width: 1100px; width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1.5rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .card-header {
+      padding: 1.1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title { font-size: .88rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .07em; }
+    .card-body { padding: 1.4rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+
+    /* ── FORM ELEMENTS ── */
+    label { font-size: .83rem; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: .35rem; }
+    input[type="text"], textarea, select {
+      width: 100%; padding: .6rem .85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit; font-size: .9rem; color: var(--text-primary);
+      background: var(--bg);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      resize: none; outline: none;
+    }
+    input[type="text"]:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+      background: #fff;
+    }
+    textarea { min-height: 130px; line-height: 1.55; }
+    .char-hint { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; text-align: right; }
+
+    /* ── CONTROLS ROW ── */
+    .controls-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    .tone-select { flex: 1; min-width: 130px; }
+
+    /* ── BUTTON ── */
+    .btn-generate {
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .65rem 1.4rem;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: var(--radius-sm);
+      font-family: inherit; font-size: .9rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 1px 2px rgba(79,70,229,.3);
+    }
+    .btn-generate:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(79,70,229,.35); transform: translateY(-1px); }
+    .btn-generate:active:not(:disabled) { transform: translateY(0); }
+    .btn-generate:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-generate .spinner {
+      width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .btn-generate.loading .spinner { display: block; }
+    .btn-generate.loading .btn-text { display: none; }
+
+    /* ── OUTPUT PANEL ── */
+    .output-placeholder {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: .75rem;
+      color: var(--text-muted); text-align: center; padding: 2rem;
+      min-height: 280px;
+    }
+    .output-placeholder svg { width: 40px; height: 40px; opacity: .35; }
+    .output-placeholder p { font-size: .88rem; max-width: 200px; line-height: 1.5; }
+
+    #output-content {
+      flex: 1; padding: 1.2rem 1.4rem;
+      font-size: .9rem; line-height: 1.75; color: var(--text-primary);
+      white-space: pre-wrap; word-break: break-word;
+      display: none; overflow-y: auto; max-height: 520px;
+      animation: fadeIn .3s ease;
+    }
+
+    /* Skeleton loader */
+    .skeleton-wrap { flex: 1; padding: 1.2rem 1.4rem; display: none; flex-direction: column; gap: .75rem; }
+    .skeleton-line {
+      height: 13px; border-radius: 99px;
+      background: linear-gradient(90deg, var(--border) 25%, #f1f1f3 50%, var(--border) 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    .skeleton-line.w-full { width: 100%; }
+    .skeleton-line.w-3\/4  { width: 75%; }
+    .skeleton-line.w-1\/2  { width: 50%; }
+    .skeleton-line.w-5\/6  { width: 83%; }
+    .skeleton-line.h-big   { height: 18px; }
+
+    /* Status tags */
+    .status-tag {
+      font-size: .72rem; font-weight: 600; padding: 2px 8px;
+      border-radius: 99px; display: none;
+    }
+    .status-tag.success { background: var(--success-soft); color: var(--success); display: inline-block; }
+    .status-tag.error   { background: var(--error-soft);   color: var(--error);   display: inline-block; }
+
+    /* Copy / Stats row */
+    .output-footer {
+      padding: .75rem 1.4rem;
+      border-top: 1px solid var(--border);
+      display: none; align-items: center; justify-content: space-between; gap: .5rem;
+      flex-wrap: wrap;
+    }
+    .meta-info { font-size: .75rem; color: var(--text-muted); display: flex; gap: 1rem; }
+    .btn-copy {
+      display: flex; align-items: center; gap: .35rem;
+      padding: .4rem .9rem;
+      font-family: inherit; font-size: .8rem; font-weight: 500;
+      background: var(--surface); color: var(--text-secondary);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .btn-copy:hover { background: var(--bg); border-color: var(--border-focus); color: var(--text-primary); }
+    .btn-copy.copied { background: var(--success-soft); color: var(--success); border-color: var(--success); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes shimmer { to { background-position: -400% 0; } }
+    @keyframes fadeIn  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center; padding: 1.25rem;
+      font-size: .75rem; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+    footer strong { color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="28" height="28" rx="7" fill="#4f46e5"/>
+      <path d="M8 20 L14 8 L20 20" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10.2 16h7.6" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    <span>CopyAI</span>
+  </a>
+  <span class="nav-badge">Fine-tuned Llama-3</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>E-Commerce Description Generator</h1>
+  <p>Locally powered by your fine-tuned Llama-3 model — no cloud, no API costs.</p>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- LEFT: INPUT CARD -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Product Details</span>
+    </div>
+    <div class="card-body">
+
+      <div>
+        <label for="product-title">Product Title</label>
+        <input id="product-title" type="text"
+          placeholder="e.g. Neutrogena Hydro Boost Water Gel, 1.7 oz"
+          maxlength="200" />
+      </div>
+
+      <div>
+        <label for="product-features">Key Features</label>
+        <textarea id="product-features"
+          placeholder="e.g.&#10;- Oil-free face moisturizer with hyaluronic acid&#10;- Instantly quenches dry skin&#10;- Non-comedogenic, dye-free&#10;- For extra-dry skin"
+          maxlength="1000"></textarea>
+        <div class="char-hint"><span id="char-count">0</span> / 1000</div>
+      </div>
+
+      <div class="controls-row">
+        <div class="tone-select">
+          <label for="tone-select">Writing Tone</label>
+          <select id="tone-select">
+            <option value="compelling">Compelling & Persuasive</option>
+            <option value="professional">Professional & Informative</option>
+            <option value="casual">Casual & Friendly</option>
+            <option value="luxury">Luxury & Premium</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="generate-btn" class="btn-generate" onclick="generateDescription()">
+        <span class="btn-text">✦ Generate Description</span>
+        <div class="spinner"></div>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: OUTPUT CARD -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Generated Copy</span>
+      <span id="status-tag" class="status-tag"></span>
+    </div>
+
+    <!-- Placeholder -->
+    <div id="output-placeholder" class="output-placeholder">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+      </svg>
+      <p>Fill in the product details and click Generate to see results here.</p>
+    </div>
+
+    <!-- Skeleton -->
+    <div id="skeleton-wrap" class="skeleton-wrap">
+      <div class="skeleton-line h-big w-3\/4"></div>
+      <div class="skeleton-line w-full"></div>
+      <div class="skeleton-line w-5\/6"></div>
+      <div class="skeleton-line w-full"></div>
+      <div class="skeleton-line w-3\/4"></div>
+      <div style="height:.5rem"></div>
+      <div class="skeleton-line h-big w-1\/2"></div>
+      <div class="skeleton-line w-full"></div>
+      <div class="skeleton-line w-5\/6"></div>
+      <div class="skeleton-line w-full"></div>
+      <div class="skeleton-line w-3\/4"></div>
+    </div>
+
+    <!-- Real output -->
+    <div id="output-content"></div>
+
+    <!-- Footer -->
+    <div id="output-footer" class="output-footer">
+      <div class="meta-info">
+        <span id="meta-tokens">—</span>
+        <span id="meta-time">—</span>
+      </div>
+      <button id="copy-btn" class="btn-copy" onclick="copyOutput()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+        Copy text
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  Built with <strong>FastAPI</strong> + <strong>Llama-3</strong> fine-tuned on 2,207 synthetic e-commerce samples.
+  Running fully local — zero cloud dependency.
+</footer>
+
+<script>
+  const textarea = document.getElementById('product-features');
+  const charCount = document.getElementById('char-count');
+  textarea.addEventListener('input', () => { charCount.textContent = textarea.value.length; });
+
+  let lastOutputText = '';
+
+  async function generateDescription() {
+    const title    = document.getElementById('product-title').value.trim();
+    const features = document.getElementById('product-features').value.trim();
+    const tone     = document.getElementById('tone-select').value;
+
+    if (!title) {
+      document.getElementById('product-title').focus();
+      document.getElementById('product-title').style.borderColor = '#ef4444';
+      setTimeout(() => document.getElementById('product-title').style.borderColor = '', 1500);
+      return;
+    }
+
+    // UI: loading state
+    const btn = document.getElementById('generate-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    document.getElementById('output-placeholder').style.display = 'none';
+    document.getElementById('output-content').style.display     = 'none';
+    document.getElementById('output-footer').style.display      = 'none';
+    document.getElementById('skeleton-wrap').style.display      = 'flex';
+
+    const statusTag = document.getElementById('status-tag');
+    statusTag.className = 'status-tag';
+
+    const startTime = Date.now();
+
+    try {
+      const tonePrompts = {
+        compelling:   'Write a compelling, persuasive, and SEO-friendly e-commerce product description.',
+        professional: 'Write a professional, informative, and detailed e-commerce product description.',
+        casual:       'Write a casual, friendly, and approachable e-commerce product description.',
+        luxury:       'Write a luxurious, premium, and elegant e-commerce product description.',
+      };
+
+      const response = await fetch('/description/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_name: title,
+          features: features
+            ? features.split('\n').filter(Boolean).map(f => f.replace(/^[-*]\s*/, '')).join(', ')
+            : '',
+          tone: tone,
+        }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.detail || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      lastOutputText = data.description || '';
+
+      // Show result
+      document.getElementById('skeleton-wrap').style.display = 'none';
+      const outputEl = document.getElementById('output-content');
+      outputEl.textContent = lastOutputText;
+      outputEl.style.display = 'block';
+
+      document.getElementById('meta-tokens').textContent =
+        data.output_tokens ? `${data.output_tokens} tokens` : '';
+      document.getElementById('meta-time').textContent = `${elapsed}s`;
+
+      const footer = document.getElementById('output-footer');
+      footer.style.display = 'flex';
+
+      statusTag.textContent = 'Ready';
+      statusTag.className = 'status-tag success';
+
+      const copyBtn = document.getElementById('copy-btn');
+      copyBtn.classList.remove('copied');
+      copyBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy text`;
+
+    } catch (err) {
+      document.getElementById('skeleton-wrap').style.display = 'none';
+      document.getElementById('output-placeholder').style.display = 'flex';
+
+      const p = document.querySelector('#output-placeholder p');
+      p.style.color = '#ef4444';
+      p.textContent = err.message || 'Something went wrong. Is the FastAPI server running?';
+
+      statusTag.textContent = 'Error';
+      statusTag.className = 'status-tag error';
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  function copyOutput() {
+    if (!lastOutputText) return;
+    navigator.clipboard.writeText(lastOutputText).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy text`;
+      }, 2500);
+    });
+  }
+
+  // Allow Ctrl+Enter to trigger generation
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateDescription();
+  });
+</script>
+
+</body>
+</html>

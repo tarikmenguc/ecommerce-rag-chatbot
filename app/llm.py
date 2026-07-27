@@ -116,3 +116,34 @@ async def embed(
 
     resp = await asyncio.to_thread(_do_embed)
     return resp
+
+
+from app.logger import timed_llm_call
+import httpx
+
+@timed_llm_call(caller="generate_ecommerce_description")
+async def generate_ecommerce_description(prompt: str) -> tuple[str, int, int, str, str]:
+    """Generates an e-commerce product description using the local Ollama fine-tuned model."""
+    url = f"{settings.ollama_base_url}/api/generate"
+    payload = {
+        "model": "e-commerce",
+        "prompt": prompt,
+        "system": "You are an expert e-commerce copywriter. Write a compelling, SEO-friendly product description based on the provided title and features. Be concise, benefit-focused, and persuasive.",
+        "stream": False,
+        "options": {
+            "temperature": 0.4,
+            "num_predict": 400,
+        }
+    }
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(url, json=payload, timeout=120.0)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        text = data.get("response", "")
+        in_tok = data.get("prompt_eval_count", 0)
+        out_tok = data.get("eval_count", 0)
+        
+        # Return 5-tuple for timed_llm_call decorator: (response, input_tokens, output_tokens, model, api_key)
+        return text, in_tok, out_tok, "ecommerce-llama3", "local"

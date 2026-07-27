@@ -43,6 +43,7 @@ PRICES: dict[str, dict[str, float]] = {
     "text-embedding-3-small": {"input": 0.020, "output": 0.000},
     "gemini-3.5-flash":       {"input": 0.000, "output": 0.000},
     "gemini-3.1-flash-lite":  {"input": 0.000, "output": 0.000},
+    "ecommerce-llama3":       {"input": 0.000, "output": 0.000},
 }
 
 

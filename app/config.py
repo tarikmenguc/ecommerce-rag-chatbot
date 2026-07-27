@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
 
     app_env: str = "dev"
     log_level: str = "INFO"
@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     default_chat_model: str = "gemini-3.5-flash"
     default_embed_model: str = "BAAI/bge-m3"
     embed_dimensions: int = 1024
+    ollama_base_url: str = "http://localhost:11434"
 
     daily_cost_cap_usd: float = 0.50
     user_daily_cost_cap_usd: float = 0.10

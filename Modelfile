@@ -1,0 +1,2 @@
+FROM llama3
+ADAPTER ./finetuned_llama3_lora/adapter.gguf

@@ -52,3 +52,13 @@ class ProductSearchResponse(BaseModel):
     hits: list[ProductHit]
     answer: str | None = None
     cost_usd: float
+
+
+class DescriptionRequest(BaseModel):
+    product_name: str = Field(min_length=2, max_length=200)
+    features: str | None = Field(default=None, max_length=1000)
+
+
+class DescriptionResponse(BaseModel):
+    description: str
+    model: str

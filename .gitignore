@@ -32,3 +32,19 @@ blockers.md
 
 # Data directories
 data/
+
+# Large model files (>100MB — exceeds GitHub limit, store locally or use HF Hub)
+*.safetensors
+*.gguf
+*.bin
+*.pt
+*.pth
+finetuned_llama3_lora/adapter_model.safetensors
+finetuned_llama3_lora/adapter.gguf
+
+# llama.cpp toolchain (cloned at runtime, not needed in repo)
+llama.cpp/
+
+# Training outputs
+outputs/
+models/

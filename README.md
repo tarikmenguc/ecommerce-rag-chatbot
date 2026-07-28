@@ -1,54 +1,59 @@
-# AI Engineer Starter Repo
-**Stack:** FastAPI + Pydantic + Postgres (pgvector) + Docker + Caddy
-**Purpose:** Month 1 flagship project base. E-commerce RAG service that grows into a 4-project portfolio.
+# 🚀 E-Commerce AI Copywriter (End-to-End LLM Fine-Tuning & Deployment)
 
-## What's inside
+Welcome to the **E-Commerce AI Copywriter** project! This repository showcases a complete, end-to-end AI engineering pipeline—from generating a synthetic dataset and fine-tuning an open-source LLM, to serving it via a FastAPI backend with a premium Glassmorphism UI.
 
-```
-starter-repo/
-├── app/
-│   ├── __init__.py
-│   ├── main.py            # FastAPI entrypoint
-│   ├── config.py          # env-driven settings (Pydantic Settings)
-│   ├── logger.py          # LLM-call logger + cost tracker (the thing you write by hand)
-│   ├── db.py              # SQLAlchemy async engine, session
-│   ├── models.py          # SQLAlchemy ORM: Interaction, Product
-│   ├── schemas.py         # Pydantic request/response models
-│   ├── llm.py             # Thin OpenAI/Anthropic wrappers (no LangChain)
-│   └── routers/
-│       ├── __init__.py
-│       ├── health.py
-│       └── chat.py        # /chat endpoint
-├── tests/
-│   ├── test_health.py
-│   └── test_logger.py
-├── alembic/               # migrations (optional, init after first run)
-├── .env.example
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── pyproject.toml
-```
+## 🎯 What is this project?
+Writing compelling, SEO-friendly, and highly converting product descriptions is a time-consuming and expensive process for e-commerce businesses. While APIs like GPT-4 or Gemini can do this, they incur recurring costs and rate limits at scale. 
 
-## Quick start
+**This project solves that problem by:**
+1. Fine-tuning a local, open-source model (**Llama-3 8B**) to become an expert e-commerce copywriter.
+2. Generating high-quality descriptions from just a short product title and a few bullet-point features.
+3. Operating at **$0 recurring cost** with absolute data privacy.
 
+## ✨ Key Features & Architecture
+- **Synthetic Data Generation:** Used Google Gemini to generate a dataset of 2,207 high-quality e-commerce examples (Titles, Features, and target Descriptions).
+- **QLoRA Fine-Tuning:** Fine-tuned `llama-3-8b-Instruct` using the `Unsloth` library to massively reduce VRAM usage (fits on a free Kaggle/Colab T4 GPU).
+- **FastAPI Backend:** A lightweight, async REST API to serve the model to front-end applications.
+- **Ollama Integration:** The fine-tuned weights are converted to GGUF and served locally via Ollama for seamless inference.
+- **Premium UI:** A vanilla HTML/CSS/JS frontend featuring a modern dark/light-gray theme, glassmorphism effects, and skeleton loaders to provide a premium user experience.
+- **A/B Testing Framework:** Includes automated scripts to test the fine-tuned local model against commercial APIs (Gemini 3.5 Flash) to measure Latency, Cost, and Quality.
+
+## 📈 Why Local Fine-Tuning? (The ROI)
+In our A/B test on 100 products:
+- **Commercial API (Gemini):** Fast (~8.8s) but subject to strict rate limits (15 RPM on free tier) and recurring API costs for massive catalogs.
+- **Our Fine-Tuned Llama-3:** Completely **Free**, no rate limits, and zero data-privacy concerns. The text output is perfectly structured for Amazon/Shopify with engaging hooks and bullet points.
+
+## 🛠️ Tech Stack
+- **AI & Training:** Hugging Face `transformers`, `peft`, `unsloth`, `trl`, `ollama`
+- **Backend:** Python, `FastAPI`, `Uvicorn`, `Pydantic`
+- **Frontend:** HTML5, Vanilla CSS (Glassmorphism design), JavaScript
+- **Deployment:** Docker (for API & Database), Hugging Face Hub
+
+## 🚀 How to Run Locally
+
+### 1. Prerequisites
+- Python 3.10+
+- [Ollama](https://ollama.com/) installed locally.
+
+### 2. Setup the Model
+You can pull the fine-tuned model directly from Hugging Face or build it in Ollama:
 ```bash
-cp .env.example .env
-# fill in OPENAI_API_KEY
-docker-compose up --build
-# open http://localhost:8000/docs
+# Pull the base model
+ollama run llama3
+
+# Or if you have the Modelfile from this repo
+ollama create e-commerce -f Modelfile
 ```
 
-## Rules you agreed to
+### 3. Start the API
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
-1. **Every LLM call goes through `app/logger.py`**. If a call doesn't log cost, PR gets rejected (even if the PR is from you).
-2. **No LangChain.** Direct SDK calls wrapped in `app/llm.py`.
-3. **Write `app/logger.py` by hand.** It's deliberately left as a stub for you.
-4. **Tests are mandatory.** No endpoint without a test.
+### 4. Open the UI
+Simply open `http://localhost:8000` in your browser. Enter a product title, list its features, and watch the AI write a high-converting description in seconds!
 
-## Month 1 weekly checkpoints
-
-- **Week 1:** Logger + health + first `/chat` endpoint + 5 tests
-- **Week 2:** pgvector + embeddings + `/search` endpoint (RAG)
-- **Week 3:** Deploy to VPS with Caddy HTTPS + rate limiting
-- **Week 4:** Model selection matrix + 4-model benchmark
+## 🔮 Future Roadmap (Phase 2)
+- **Batch Processing:** Ability to upload an Excel/CSV file of 1,000+ products and generate descriptions in bulk.
+- **n8n / Make.com Integrations:** Automated workflows that pull new products from Trendyol/Shopify, write the descriptions via our API, and push them back to the marketplace automatically.

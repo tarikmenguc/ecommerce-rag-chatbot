@@ -13,7 +13,7 @@ load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-API_URL = "http://localhost:8001/description/generate"
+API_URL = "http://localhost:8000/description/generate"
 
 async def call_gemini(title, features):
     prompt = f"{title} için kısa, esprili ve çok ikna edici bir ürün açıklaması yazar mısın?"
@@ -115,7 +115,7 @@ async def main():
             products.append({"user": user_msg})
             
     random.seed(42)
-    sample_size = min(100, len(products))
+    sample_size = min(25, len(products))
     test_products = random.sample(products, sample_size)
     
     print(f"Starting A/B test on {sample_size} products...")

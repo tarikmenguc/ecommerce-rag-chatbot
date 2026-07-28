@@ -62,3 +62,34 @@ class DescriptionRequest(BaseModel):
 class DescriptionResponse(BaseModel):
     description: str
     model: str
+
+
+# --- Faz 2: Batch Processing ---
+
+class BatchProductItem(BaseModel):
+    """Tek bir ürünün batch isteğindeki temsili."""
+    external_reference_id: str = Field(
+        description="Kullanıcının kaynak sistemindeki ID (Google Sheets satır no, DB ID vb.)"
+    )
+    product_title: str = Field(min_length=2, max_length=512)
+    product_features: str | None = Field(
+        default=None,
+        max_length=2000,
+        description="Teknik özellikler — max 2000 karakter, aşarsa otomatik kırpılır",
+    )
+
+
+class BatchProcessRequest(BaseModel):
+    """n8n veya herhangi bir istemcinin /description/batch endpointine atacağı JSON."""
+    webhook_url: str = Field(
+        description="İşler bitince sonuçların POST edilecekleri URL (n8n Webhook Node vb.)"
+    )
+    products: list[BatchProductItem] = Field(min_length=1, max_length=500)
+
+
+class BatchProcessResponse(BaseModel):
+    """202 Accepted cevabı — işlem sıraya alındı."""
+    message: str
+    batch_id: str
+    total_products: int
+

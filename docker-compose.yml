@@ -20,7 +20,8 @@ services:
     env_file: .env
     environment:
       POSTGRES_HOST: db
-      # HuggingFace cache — model bir kez indirilir, container yeniden başlatılsa da tekrar indirilmez
+      POSTGRES_PORT: 5432   # Docker icinde db container'i 5432 dinler (5433 sadece host icin)
+      OLLAMA_BASE_URL: http://host.docker.internal:11434  # Host makinedeki Ollama'ya erisim
       HF_HOME: /hf_cache
     depends_on:
       db:

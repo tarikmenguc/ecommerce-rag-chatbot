@@ -1,4 +1,5 @@
 """FastAPI entrypoint."""
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -11,6 +12,7 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.db import Base, engine
 from app.logger import CostCapExceeded  # Kendi özel hata sınıfımız
+from app.worker import queue_poller
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
@@ -23,13 +25,22 @@ log = logging.getLogger("app")
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Week 1: create tables naively. Switch to Alembic migrations later.
+    # Tabloları oluştur (ilk çalıştırmada batch_job tablosu da oluşur)
     async with engine.begin() as conn:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
     log.info("Startup complete. env=%s", settings.app_env)
+
+    # Faz 2: Batch queue poller'ı arka planda başlat
+    poller_task = asyncio.create_task(queue_poller())
+    log.info("✅ queue_poller arka planda başlatıldı.")
+
     yield
+
+    # Kapatırken poller'ı durdur
+    poller_task.cancel()
     await engine.dispose()
+
 
 
 app = FastAPI(

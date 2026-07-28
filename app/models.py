@@ -5,17 +5,28 @@ V2 Changes vs V1:
   `avg_rating` added to support SQL Agent queries in Week 6.
 - ProductChunk: NEW table. Each product has N chunks (metadata, description, review).
   Only this table holds embeddings. Searching is done against this table.
+
+Faz 2:
+- BatchJob: Async batch description generation job tracker.
 """
 from __future__ import annotations
 
+import enum
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 
 from app.db import Base
+
+
+class JobStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
 
 
 class LlmCallLog(Base):
@@ -99,3 +110,31 @@ class ProductChunk(Base):
 
     # Many chunks → one product
     product: Mapped["Product"] = relationship("Product", back_populates="chunks")
+
+
+class BatchJob(Base):
+    """Faz 2 — Async batch description job tracker.
+
+    queue_poller() bu tabloyu her 5 saniyede bir okur ve
+    PENDING işleri sırayla Ollama'ya gönderir.
+    """
+    __tablename__ = "batch_job"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    batch_id: Mapped[str] = mapped_column(String(64), index=True)
+    external_reference_id: Mapped[str] = mapped_column(String(128))
+    status: Mapped[JobStatus] = mapped_column(
+        Enum(JobStatus, name="jobstatus"), default=JobStatus.PENDING, index=True
+    )
+    product_title: Mapped[str] = mapped_column(String(512))
+    product_features: Mapped[str | None] = mapped_column(Text, nullable=True)
+    generated_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    webhook_url: Mapped[str] = mapped_column(String(2048))
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now(), nullable=True
+    )
+

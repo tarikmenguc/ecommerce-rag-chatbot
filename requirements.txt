@@ -39,5 +39,5 @@ pytest==8.3.2
 pytest-asyncio==0.23.8
 ruff==0.6.3
 ragas==0.2.7
-langfuse==2.57.1
+# langfuse kaldirildi: projenin hicbir yerinde import edilmiyor (grep dogrulamasi yapildi)
 

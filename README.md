@@ -54,6 +54,16 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ### 4. Open the UI
 Simply open `http://localhost:8000` in your browser. Enter a product title, list its features, and watch the AI write a high-converting description in seconds!
 
-## 🔮 Future Roadmap (Phase 2)
-- **Batch Processing:** Ability to upload an Excel/CSV file of 1,000+ products and generate descriptions in bulk.
-- **n8n / Make.com Integrations:** Automated workflows that pull new products from Trendyol/Shopify, write the descriptions via our API, and push them back to the marketplace automatically.
+## 🔄 Phase 2: Asynchronous Automation & Orchestration (Completed!)
+In the second phase of this project, we upgraded the architecture to handle massive scale and seamless integrations for e-commerce platforms.
+
+- **PostgreSQL Job Queue:** Implemented a robust database-backed queue system. When thousands of product generation requests hit the API, they are safely stored in PostgreSQL with a `PENDING` status.
+- **Async Poller (Worker):** A background Python worker continuously polls the database, feeding jobs one by one to the local Ollama LLM. This guarantees zero Out-of-Memory (OOM) errors and ensures no jobs are lost even if the server restarts.
+- **n8n Workflow Automation:** Designed a fully automated, low-code n8n pipeline.
+  1. Detects new products with empty descriptions in Google Sheets.
+  2. Submits them via a batch API call to our FastAPI backend.
+  3. The API immediately responds with `202 Accepted` (Webhook workflow).
+  4. Once the LLM finishes generating the SEO HTML copy, the backend sends a secure Webhook back to n8n.
+  5. n8n dynamically updates the exact row in Google Sheets with the finalized `Completed` status and the rich HTML description.
+
+This asynchronous webhook architecture is highly sought after by enterprise clients on platforms like Upwork, demonstrating production-ready systems engineering!

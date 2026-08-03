@@ -85,6 +85,7 @@ class BatchProcessRequest(BaseModel):
         description="İşler bitince sonuçların POST edilecekleri URL (n8n Webhook Node vb.)"
     )
     products: list[BatchProductItem] = Field(min_length=1, max_length=500)
+    sheet_url: str | None = None
 
 
 class BatchProcessResponse(BaseModel):

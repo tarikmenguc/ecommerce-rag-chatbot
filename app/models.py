@@ -130,6 +130,7 @@ class BatchJob(Base):
     product_features: Mapped[str | None] = mapped_column(Text, nullable=True)
     generated_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     webhook_url: Mapped[str] = mapped_column(String(2048))
+    sheet_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), index=True

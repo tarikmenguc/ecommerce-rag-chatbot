@@ -104,6 +104,8 @@ async def _process_one_job(job: BatchJob, session) -> None:
             "batch_id": job.batch_id,
             "status": "COMPLETED",
             "generated_text": html_text,
+            "product_title": job.product_title,
+            "sheet_url": job.sheet_url,
         }
         async with httpx.AsyncClient() as client:
             try:

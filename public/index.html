@@ -72,11 +72,16 @@
       max-width: 1100px; width: 100%;
       margin: 0 auto;
       padding: 1.5rem 1.5rem 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .top-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1.25rem;
     }
-    @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .top-grid { grid-template-columns: 1fr; } }
 
     /* ── CARDS ── */
     .card {
@@ -207,6 +212,56 @@
     @keyframes shimmer { to { background-position: -400% 0; } }
     @keyframes fadeIn  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
+    /* ── BATCH CARD ── */
+    .arch-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: .5rem; flex-wrap: wrap;
+      padding: .75rem 0;
+    }
+    .arch-step {
+      display: flex; flex-direction: column; align-items: center; gap: .25rem;
+      font-size: .75rem; color: var(--text-secondary); font-weight: 500;
+    }
+    .arch-step .icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; background: var(--accent-soft); border: 1px solid #c7d2fe;
+    }
+    .arch-arrow { color: var(--text-muted); font-size: 1.1rem; margin-top: -12px; }
+    .sheet-input-row { display: flex; gap: .6rem; align-items: flex-end; }
+    .sheet-input-row input { flex: 1; }
+    .btn-open-sheet {
+      padding: .6rem 1rem; white-space: nowrap;
+      font-family: inherit; font-size: .85rem; font-weight: 500;
+      background: var(--surface); color: var(--text-secondary);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: .3rem;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .btn-open-sheet:hover { background: var(--bg); border-color: var(--border-focus); color: var(--text-primary); }
+    .btn-trigger {
+      width: 100%; padding: .75rem 1.4rem;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: #fff; border: none; border-radius: var(--radius-sm);
+      font-family: inherit; font-size: .95rem; font-weight: 600;
+      cursor: pointer;
+      transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 2px 8px rgba(124,58,237,.35);
+    }
+    .btn-trigger:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,.4); }
+    .btn-trigger:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-trigger .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+    .btn-trigger.loading .spinner { display: block; }
+    .btn-trigger.loading .btn-text { display: none; }
+    .batch-toast {
+      padding: .8rem 1rem; border-radius: var(--radius-sm);
+      font-size: .85rem; font-weight: 500; display: none;
+      animation: fadeIn .3s ease;
+    }
+    .batch-toast.success { background: var(--success-soft); color: #065f46; border: 1px solid #6ee7b7; }
+    .batch-toast.error   { background: var(--error-soft);   color: #991b1b; border: 1px solid #fca5a5; }
+
     /* ── FOOTER ── */
     footer {
       text-align: center; padding: 1.25rem;
@@ -240,6 +295,7 @@
 <!-- MAIN -->
 <main>
 
+<div class="top-grid">
   <!-- LEFT: INPUT CARD -->
   <div class="card">
     <div class="card-header">
@@ -330,6 +386,64 @@
       </button>
     </div>
   </div>
+
+</div><!-- /.top-grid -->
+
+<!-- BATCH PIPELINE CARD -->
+<div class="card" id="batch-card">
+  <div class="card-header">
+    <span class="card-title">⚡ Batch Processing — Async n8n Pipeline</span>
+    <span class="nav-badge" style="background:#f3e8ff;color:#7c3aed;border-color:#ddd6fe;">n8n + Google Sheets</span>
+  </div>
+  <div class="card-body">
+
+    <p style="font-size:.875rem;color:var(--text-secondary);line-height:1.65;">
+      Process entire product catalogs automatically. Add products to your Google Sheet, paste the URL below, and click <strong>Trigger</strong>. The async pipeline reads your sheet, runs each product through the local Llama-3 model, and writes the HTML copy back — all without any manual steps.
+    </p>
+
+    <!-- Architecture diagram -->
+    <div class="arch-row">
+      <div class="arch-step"><div class="icon">📊</div><span>Google Sheets</span></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-step"><div class="icon">⚙️</div><span>n8n</span></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-step"><div class="icon">🚀</div><span>FastAPI</span></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-step"><div class="icon">🤖</div><span>Llama-3</span></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-step"><div class="icon">🔔</div><span>Webhook</span></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-step"><div class="icon" style="background:#d1fae5;border-color:#6ee7b7;">✅</div><span>Sheet Updated</span></div>
+    </div>
+
+    <!-- Sheet URL input -->
+    <div>
+      <label for="sheet-url">Your Google Sheets URL</label>
+      <div class="sheet-input-row">
+        <input
+          id="sheet-url"
+          type="text"
+          placeholder="https://docs.google.com/spreadsheets/d/..."
+          oninput="saveSheetUrl(this.value)"
+        />
+        <a id="open-sheet-btn" class="btn-open-sheet" href="#" target="_blank" rel="noopener"
+           onclick="return openSheet()">
+          ↗ Open Sheet
+        </a>
+      </div>
+    </div>
+
+    <!-- Trigger button -->
+    <button id="trigger-btn" class="btn-trigger" onclick="triggerBatch()">
+      <span class="btn-text">🚀 Trigger n8n Pipeline</span>
+      <div class="spinner"></div>
+    </button>
+
+    <!-- Status toast -->
+    <div id="batch-toast" class="batch-toast"></div>
+
+  </div>
+</div>
 
 </main>
 
@@ -455,6 +569,59 @@
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateDescription();
   });
+
+  // ── Batch Pipeline ─────────────────────────────────────────────────────
+  // Restore saved sheet URL from localStorage
+  const savedUrl = localStorage.getItem('sheetUrl') || '';
+  if (savedUrl) document.getElementById('sheet-url').value = savedUrl;
+
+  function saveSheetUrl(val) {
+    localStorage.setItem('sheetUrl', val.trim());
+  }
+
+  function openSheet() {
+    const url = document.getElementById('sheet-url').value.trim();
+    if (!url) { alert('Please paste your Google Sheets URL first.'); return false; }
+    window.open(url, '_blank', 'noopener');
+    return false;
+  }
+
+  async function triggerBatch() {
+    const sheetUrl = document.getElementById('sheet-url').value.trim();
+    const btn = document.getElementById('trigger-btn');
+    const toast = document.getElementById('batch-toast');
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+    toast.style.display = 'none';
+    toast.className = 'batch-toast';
+
+    try {
+      const resp = await fetch('/description/trigger-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sheet_url: sheetUrl || null }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        throw new Error(data.detail || `Server error: ${resp.status}`);
+      }
+
+      toast.textContent = '✅ ' + data.message;
+      toast.className = 'batch-toast success';
+      toast.style.display = 'block';
+
+    } catch (err) {
+      toast.textContent = '❌ ' + (err.message || 'Something went wrong.');
+      toast.className = 'batch-toast error';
+      toast.style.display = 'block';
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
 </script>
 
 </body>

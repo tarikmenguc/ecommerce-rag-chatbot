@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     gemini_api_key: str | None = None
 
-    default_chat_model: str = "gemini-3.5-flash"
+    default_chat_model: str = "gemini-3.5-flash-lite"
     default_embed_model: str = "BAAI/bge-m3"
     embed_dimensions: int = 1024
     ollama_base_url: str = "http://localhost:11434"

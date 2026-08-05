@@ -16,7 +16,7 @@ from app.worker import queue_poller
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
-from app.routers import admin, chat, health, search, description
+from app.routers import admin, chat, health, search, description, agent_chat, webhook_trendyol
 
 settings = get_settings()
 logging.basicConfig(level=settings.log_level)
@@ -54,6 +54,8 @@ app.include_router(chat.router)
 app.include_router(search.router)
 app.include_router(admin.router)
 app.include_router(description.router)
+app.include_router(agent_chat.router)
+app.include_router(webhook_trendyol.router)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

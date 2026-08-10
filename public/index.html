@@ -1,1094 +1,362 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CopyAI — E-Commerce Description Generator</title>
-  <meta name="description" content="Generate compelling, SEO-friendly product descriptions using a locally fine-tuned Llama-3 model." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <title>Shopify AI Optimizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg-start:   #f8fafc;
-      --bg-end:     #f1f5f9;
-      --surface:    #ffffff;
-      --border:     #e2e8f0;
-      --border-focus: #94a3b8;
-      --text-primary:   #0f172a;
-      --text-secondary: #475569;
-      --text-muted:     #94a3b8;
-      --accent:     #6366f1;
-      --accent-hover:#4f46e5;
-      --accent-soft:#e0e7ff;
-      --success:    #10b981;
-      --success-soft:#d1fae5;
-      --error:      #ef4444;
-      --error-soft: #fee2e2;
-      --shadow-sm:  0 1px 2px rgba(0,0,0,.04);
-      --shadow-md:  0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -1px rgba(0,0,0,.03);
-      --shadow-lg:  0 10px 25px -5px rgba(0,0,0,.08), 0 8px 10px -6px rgba(0,0,0,.04);
-      --radius-sm:  8px;
-      --radius-md:  12px;
-      --radius-lg:  16px;
-      --transition: 200ms cubic-bezier(.4,0,.2,1);
+      --bg:#0B0F19; --surface:#111827; --surface-2:#1a2235;
+      --border:rgba(255,255,255,0.07); --primary:#6366F1; --primary-glow:rgba(99,102,241,0.18);
+      --info:#06B6D4; --warning:#F59E0B; --success:#10B981; --error:#EF4444;
+      --text:#F1F5F9; --muted:#64748B; --muted-2:#94A3B8; --radius:12px; --radius-sm:8px;
     }
+    html, body { height: 100%; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; display: flex; overflow: hidden; }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
 
-    html { font-family: 'Inter', system-ui, sans-serif; font-size: 15px; }
-    body  { background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+    .sidebar { width: 68px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 1.25rem 0; gap: 0.5rem; z-index: 10; flex-shrink: 0; }
+    .sidebar-logo { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+    .sb-btn { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; transition: all 0.15s; border: 1px solid transparent; position: relative; }
+    .sb-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .sb-btn.active { color: var(--primary); background: var(--primary-glow); border-color: rgba(99,102,241,0.35); }
 
-    /* ── NAV ── */
-    nav {
-      position: sticky; top: 0; z-index: 50;
-      background: rgba(255,255,255,.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
-      height: 56px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .nav-brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; }
-    .nav-brand svg { width: 28px; height: 28px; }
-    .nav-brand span { font-weight: 700; font-size: 1.05rem; color: var(--text-primary); letter-spacing: -.02em; }
-    .nav-badge {
-      font-size: .7rem; font-weight: 500; padding: 3px 10px;
-      background: var(--accent-soft); color: var(--accent);
-      border-radius: 99px; border: 1px solid #c7d2fe;
-    }
+    .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .module { display: none; flex: 1; overflow: hidden; }
+    .module.active { display: flex; flex-direction: column; }
 
-    /* ── HERO ── */
-    .hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
-    .hero h1 {
-      font-size: clamp(1.6rem, 4vw, 2.2rem);
-      font-weight: 700; letter-spacing: -.03em;
-      color: var(--text-primary); line-height: 1.2;
-    }
-    .hero p { margin-top: .5rem; color: var(--text-secondary); font-size: .95rem; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .page-header h1 { font-size: 1.05rem; font-weight: 600; }
+    .page-header p  { font-size: 0.75rem; color: var(--muted-2); margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 0.65rem; }
+    .btn-primary { background: var(--primary); color: #fff; border: none; padding: 0.5rem 1.1rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.15s, transform 0.15s; }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
 
-    /* ── MAIN LAYOUT ── */
-    main {
-      flex: 1;
-      max-width: 1100px; width: 100%;
-      margin: 0 auto;
-      padding: 1.5rem 1.5rem 3rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-    .top-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
-    }
-    @media (max-width: 720px) { .top-grid { grid-template-columns: 1fr; } }
+    .filter-bar { display: flex; align-items: center; gap: 0.35rem; padding: 0.9rem 2rem; border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
+    .filter-tab { padding: 5px 14px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--muted-2); font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+    .filter-tab:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .filter-tab.active { color: var(--text); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+    .filter-tab .badge { background: rgba(255,255,255,0.12); padding: 1px 7px; border-radius: 99px; font-size: 0.7rem; }
 
-    /* ── CARDS ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-md);
-      overflow: hidden;
-      display: flex; flex-direction: column;
-    }
-    .card-header {
-      padding: 1.1rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .card-title { font-size: .88rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .07em; }
-    .card-body { padding: 1.4rem; flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+    .product-grid-wrap { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
 
-    /* ── FORM ELEMENTS ── */
-    label { font-size: .83rem; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: .35rem; }
-    input[type="text"], textarea, select {
-      width: 100%; padding: .75rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-family: inherit; font-size: .95rem; color: var(--text-primary);
-      background: #f8fafc;
-      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
-      resize: none; outline: none;
-    }
-    input[type="text"]:focus, textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-      background: #ffffff;
-    }
-    textarea { min-height: 130px; line-height: 1.6; }
-    .char-hint { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; text-align: right; }
+    .p-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
+    .p-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.14); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
+    .p-card.selected { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
+    .p-card-img-wrap { width: 100%; height: 160px; background: var(--surface-2); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
+    .p-card-img { width: 100%; height: 100%; object-fit: cover; }
+    .p-card-img-placeholder { color: var(--muted); opacity: 0.35; }
+    .p-card-status-badge { position: absolute; top: 10px; right: 10px; padding: 3px 9px; border-radius: 99px; font-size: 0.68rem; font-weight: 600; }
+    .badge-pending  { background: rgba(100,116,139,0.35); color: #cbd5e1; border: 1px solid rgba(100,116,139,0.4); }
+    .badge-vision   { background: rgba(6,182,212,0.2);    color: #67e8f9; border: 1px solid rgba(6,182,212,0.35); }
+    .badge-approval { background: rgba(245,158,11,0.2);   color: #fcd34d; border: 1px solid rgba(245,158,11,0.35); }
+    .badge-done     { background: rgba(16,185,129,0.2);   color: #6ee7b7; border: 1px solid rgba(16,185,129,0.35); }
+    .badge-failed   { background: rgba(239,68,68,0.2);    color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
 
-    /* ── CONTROLS ROW ── */
-    .controls-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
-    .tone-select { flex: 1; min-width: 130px; }
+    .p-card-body { padding: 0.9rem 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+    .p-card-title { font-size: 0.88rem; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .p-card-meta  { font-size: 0.72rem; color: var(--muted-2); }
+    .p-card-progress { font-size: 0.7rem; color: var(--info); display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+    .p-card-progress .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: blink 1.2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .p-card-footer { padding: 0.65rem 1rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .p-card-action { font-size: 0.75rem; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 4px; }
 
-    /* ── BUTTON ── */
-    .btn-generate {
-      display: flex; align-items: center; justify-content: center; gap: .5rem;
-      padding: .65rem 1.4rem;
-      background: var(--accent); color: #fff;
-      border: none; border-radius: var(--radius-sm);
-      font-family: inherit; font-size: .9rem; font-weight: 600;
-      cursor: pointer; white-space: nowrap;
-      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-      box-shadow: 0 1px 2px rgba(79,70,229,.3);
-    }
-    .btn-generate:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 12px rgba(79,70,229,.35); transform: translateY(-1px); }
-    .btn-generate:active:not(:disabled) { transform: translateY(0); }
-    .btn-generate:disabled { opacity: .55; cursor: not-allowed; }
-    .btn-generate .spinner {
-      width: 15px; height: 15px;
-      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      display: none;
-    }
-    .btn-generate.loading .spinner { display: block; }
-    .btn-generate.loading .btn-text { display: none; }
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 0.75rem; color: var(--muted); text-align: center; padding: 2rem; }
+    .empty-state h3 { font-size: 0.95rem; font-weight: 600; color: var(--muted-2); }
+    .empty-state p  { font-size: 0.8rem; max-width: 260px; line-height: 1.5; }
 
-    /* ── OUTPUT PANEL ── */
-    .output-placeholder {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: .75rem;
-      color: var(--text-muted); text-align: center; padding: 2rem;
-      min-height: 280px;
-    }
-    .output-placeholder svg { width: 40px; height: 40px; opacity: .35; }
-    .output-placeholder p { font-size: .88rem; max-width: 200px; line-height: 1.5; }
+    .right-panel { width: 420px; flex-shrink: 0; background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); position: absolute; right: 0; top: 0; bottom: 0; z-index: 30; box-shadow: -10px 0 30px rgba(0,0,0,0.4); }
+    .right-panel.open { transform: translateX(0); }
+    .rp-header { padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .rp-title { font-size: 0.8rem; font-weight: 600; color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.06em; }
+    .rp-close { width: 28px; height: 28px; border-radius: 6px; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .rp-close:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+    .rp-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; }
+    .rp-ctx { display: flex; gap: 0.9rem; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem; }
+    .rp-ctx-img { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #1e293b; flex-shrink: 0; }
+    .rp-ctx-name { font-size: 0.88rem; font-weight: 600; }
+    .rp-ctx-sub  { font-size: 0.72rem; color: var(--muted-2); margin-top: 3px; }
+    .rp-section-label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; display: flex; align-items: center; justify-content: space-between; }
+    .unsaved-pill { background: rgba(245,158,11,0.15); color: var(--warning); font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(245,158,11,0.3); display: none; }
+    .editor-textarea { width: 100%; min-height: 220px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem 1rem; color: var(--text); font-family: inherit; font-size: 0.83rem; line-height: 1.65; resize: vertical; outline: none; transition: border-color 0.15s; }
+    .editor-textarea:focus { border-color: rgba(99,102,241,0.5); }
+    .editor-textarea.blurred { filter: blur(3px); pointer-events: none; }
+    .quick-actions { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .qa-chip { padding: 5px 12px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--muted-2); font-size: 0.75rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.15s; }
+    .qa-chip:hover { color: var(--text); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+    .qa-chip.custom { border-color: rgba(99,102,241,0.4); color: #a5b4fc; background: var(--primary-glow); }
+    .qa-chip.custom:hover { background: rgba(99,102,241,0.25); }
+    .custom-request-box { background: var(--surface-2); border: 1px solid rgba(99,102,241,0.3); border-radius: var(--radius-sm); padding: 0.9rem; display: none; flex-direction: column; gap: 0.65rem; }
+    .custom-request-box.open { display: flex; }
+    .custom-request-label { font-size: 0.72rem; font-weight: 600; color: #a5b4fc; }
+    .custom-request-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(99,102,241,0.25); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; resize: none; min-height: 72px; line-height: 1.5; }
+    .custom-req-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .btn-sm { padding: 5px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+    .btn-sm.ghost { background: rgba(255,255,255,0.06); color: var(--muted-2); }
+    .btn-sm.ghost:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+    .btn-sm.accent { background: var(--primary); color: #fff; }
+    .rp-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .btn-approve { width: 100%; padding: 0.85rem; background: var(--success); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.15s; }
+    .btn-approve:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-approve:disabled { opacity: 0.5; cursor: wait; transform: none; }
 
-    #output-content {
-      flex: 1; padding: 1.2rem 1.4rem;
-      font-size: .9rem; line-height: 1.75; color: var(--text-primary);
-      white-space: pre-wrap; word-break: break-word;
-      display: none; overflow-y: auto; max-height: 520px;
-      animation: fadeIn .3s ease;
-    }
+    .floating-chat { position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 50; transition: right 0.28s; }
+    .floating-chat.shifted { right: 436px; }
+    .chat-trigger { width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 16px rgba(99,102,241,0.4); transition: transform 0.2s; }
+    .chat-trigger:hover { transform: translateY(-3px); }
+    .chat-window { position: absolute; bottom: 66px; right: 0; width: 340px; height: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; display: none; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .cw-header { padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .cw-body { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.65rem; }
+    .cb { padding: 0.65rem 0.85rem; border-radius: 10px; max-width: 82%; font-size: 0.82rem; line-height: 1.45; }
+    .cb.user { background: var(--primary); color: #fff; align-self: flex-end; }
+    .cb.ai   { background: var(--surface-2); color: var(--text); align-self: flex-start; border: 1px solid var(--border); }
+    .cw-footer { padding: 0.75rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
+    .cw-input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.75rem; color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; }
+    .cw-send { background: var(--primary); color: #fff; border: none; border-radius: 8px; width: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-    /* Skeleton loader */
-    .skeleton-wrap { flex: 1; padding: 1.2rem 1.4rem; display: none; flex-direction: column; gap: .75rem; }
-    .skeleton-line {
-      height: 13px; border-radius: 99px;
-      background: linear-gradient(90deg, var(--border) 25%, #f1f1f3 50%, var(--border) 75%);
-      background-size: 400% 100%;
-      animation: shimmer 1.4s infinite;
-    }
-    .skeleton-line.w-full { width: 100%; }
-    .skeleton-line.w-3\/4  { width: 75%; }
-    .skeleton-line.w-1\/2  { width: 50%; }
-    .skeleton-line.w-5\/6  { width: 83%; }
-    .skeleton-line.h-big   { height: 18px; }
+    .toasts { position: fixed; top: 1.5rem; right: 1.75rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
+    .toast { padding: 0.75rem 1.1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .toast.success { background: var(--success); }
+    .toast.error   { background: var(--error); }
+    .toast.info    { background: var(--primary); }
 
-    /* Status tags */
-    .status-tag {
-      font-size: .72rem; font-weight: 600; padding: 2px 8px;
-      border-radius: 99px; display: none;
-    }
-    .status-tag.success { background: var(--success-soft); color: var(--success); display: inline-block; }
-    .status-tag.error   { background: var(--error-soft);   color: var(--error);   display: inline-block; }
-
-    /* Copy / Stats row */
-    .output-footer {
-      padding: .75rem 1.4rem;
-      border-top: 1px solid var(--border);
-      display: none; align-items: center; justify-content: space-between; gap: .5rem;
-      flex-wrap: wrap;
-    }
-    .meta-info { font-size: .75rem; color: var(--text-muted); display: flex; gap: 1rem; }
-    .btn-copy {
-      display: flex; align-items: center; gap: .35rem;
-      padding: .4rem .9rem;
-      font-family: inherit; font-size: .8rem; font-weight: 500;
-      background: var(--surface); color: var(--text-secondary);
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background var(--transition), color var(--transition), border-color var(--transition);
-    }
-    .btn-copy:hover { background: var(--bg); border-color: var(--border-focus); color: var(--text-primary); }
-    .btn-copy.copied { background: var(--success-soft); color: var(--success); border-color: var(--success); }
-
-    /* ── ANIMATIONS ── */
-    @keyframes spin    { to { transform: rotate(360deg); } }
-    @keyframes shimmer { to { background-position: -400% 0; } }
-    @keyframes fadeIn  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-
-    /* ── BATCH CARD ── */
-    .arch-row {
-      display: flex; align-items: center; justify-content: center;
-      gap: .5rem; flex-wrap: wrap;
-      padding: .75rem 0;
-    }
-    .arch-step {
-      display: flex; flex-direction: column; align-items: center; gap: .25rem;
-      font-size: .75rem; color: var(--text-secondary); font-weight: 500;
-    }
-    .arch-step .icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; background: var(--accent-soft); border: 1px solid #c7d2fe;
-    }
-    .arch-arrow { color: var(--text-muted); font-size: 1.1rem; margin-top: -12px; }
-    .sheet-input-row { display: flex; gap: .6rem; align-items: flex-end; }
-    .sheet-input-row input { flex: 1; }
-    .btn-open-sheet {
-      padding: .6rem 1rem; white-space: nowrap;
-      font-family: inherit; font-size: .85rem; font-weight: 500;
-      background: var(--surface); color: var(--text-secondary);
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: .3rem;
-      transition: background var(--transition), border-color var(--transition);
-    }
-    .btn-open-sheet:hover { background: var(--bg); border-color: var(--border-focus); color: var(--text-primary); }
-    .btn-trigger {
-      width: 100%; padding: .75rem 1.4rem;
-      display: flex; align-items: center; justify-content: center; gap: .5rem;
-      background: linear-gradient(135deg, #7c3aed, #4f46e5);
-      color: #fff; border: none; border-radius: var(--radius-sm);
-      font-family: inherit; font-size: .95rem; font-weight: 600;
-      cursor: pointer;
-      transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
-      box-shadow: 0 2px 8px rgba(124,58,237,.35);
-    }
-    .btn-trigger:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,.4); }
-    .btn-trigger:disabled { opacity: .55; cursor: not-allowed; }
-    .btn-trigger .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
-    .btn-trigger.loading .spinner { display: block; }
-    .btn-trigger.loading .btn-text { display: none; }
-    .batch-toast {
-      padding: .8rem 1rem; border-radius: var(--radius-sm);
-      font-size: .85rem; font-weight: 500; display: none;
-      animation: fadeIn .3s ease;
-    }
-    .batch-toast.success { background: var(--success-soft); color: #065f46; border: 1px solid #6ee7b7; }
-    .batch-toast.error   { background: var(--error-soft);   color: #991b1b; border: 1px solid #fca5a5; }
-
-    /* ── FOOTER ── */
-    footer {
-      text-align: center; padding: 1.25rem;
-      font-size: .75rem; color: var(--text-muted);
-      border-top: 1px solid var(--border);
-    }
-    footer strong { color: var(--text-secondary); }
-    /* ── CHAT UI ── */
-    .chat-message { display: flex; width: 100%; margin-bottom: 0.5rem; }
-    .chat-message.user { justify-content: flex-end; }
-    .chat-message.assistant { justify-content: flex-start; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
-    .chat-message .bubble { 
-      max-width: 80%; padding: 0.8rem 1rem; border-radius: 14px; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;
-    }
-    .chat-message.user .bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-    .chat-message.assistant .bubble { background: #fff; color: var(--text-primary); border: 1px solid var(--border); border-bottom-left-radius: 4px; box-shadow: var(--shadow-sm); }
-    .tools-used { font-size: 0.75rem; color: var(--text-muted); background: #f4f4f5; padding: 4px 8px; border-radius: 4px; border: 1px dashed var(--border); display: inline-flex; align-items: center; gap: 4px; }
+    .basic-wrap { flex:1; overflow-y:auto; padding: 2rem; display: flex; flex-direction: column; gap: 1rem; max-width: 700px; }
+    .basic-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 0.9rem; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem; outline: none; }
+    .label-sm { font-size: 0.75rem; font-weight: 600; color: var(--muted-2); margin-bottom: 0.3rem; }
   </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a class="nav-brand" href="#">
-    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="28" height="28" rx="7" fill="#4f46e5"/>
-      <path d="M8 20 L14 8 L20 20" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M10.2 16h7.6" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
-    </svg>
-    <span>CopyAI</span>
-  </a>
-  <span class="nav-badge">Fine-tuned Llama-3</span>
-</nav>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.29 3.43A2 2 0 0 0 6.4 20h11.2M10 20a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+  </div>
+  <div class="sb-btn active" id="nav-optimizer" onclick="switchTab('optimizer')" title="Optimizer">
+    <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  </div>
+  <div class="sb-btn" id="nav-batch" onclick="switchTab('batch')" title="Batch Pipeline">
+    <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+  </div>
+  <div class="sb-btn" id="nav-manual" onclick="switchTab('manual')" title="Copy Generator">
+    <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  </div>
+</aside>
 
-<!-- HERO -->
-<div class="hero">
-  <h1>E-Commerce Description Generator</h1>
-  <p>Locally powered by your fine-tuned Llama-3 model — no cloud, no API costs.</p>
-</div>
-
-<!-- MAIN -->
-<main>
-
-<div class="top-grid">
-  <!-- LEFT: INPUT CARD -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Product Details</span>
+<main class="main-area">
+  <div id="module-optimizer" class="module active">
+    <div class="page-header">
+      <div><h1>Shopify AI Optimizer</h1><p>Yapay zeka ile ürün açıklamalarını otomatik oluştur</p></div>
+      <div class="header-actions">
+        <button class="btn-primary" id="btn-connect" onclick="connectShopify()">Shopify Bağlan</button>
+      </div>
     </div>
-    <div class="card-body">
-
-      <div>
-        <label for="product-title">Product Title</label>
-        <input id="product-title" type="text"
-          placeholder="e.g. Neutrogena Hydro Boost Water Gel, 1.7 oz"
-          maxlength="200" />
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-tab active" onclick="setFilter('all')" id="tab-all">Tümü <span class="badge" id="badge-all">0</span></button>
+      <button class="filter-tab" onclick="setFilter('PENDING')" id="tab-PENDING">Bekliyor <span class="badge" id="badge-PENDING">0</span></button>
+      <button class="filter-tab" onclick="setFilter('VISION')" id="tab-VISION">İşleniyor <span class="badge" id="badge-VISION">0</span></button>
+      <button class="filter-tab" onclick="setFilter('AWAITING_APPROVAL')" id="tab-AWAITING_APPROVAL">Onay Bekliyor <span class="badge" id="badge-AWAITING_APPROVAL">0</span></button>
+      <button class="filter-tab" onclick="setFilter('COMPLETED')" id="tab-COMPLETED">Tamamlandı <span class="badge" id="badge-COMPLETED">0</span></button>
+      <button class="filter-tab" onclick="setFilter('FAILED')" id="tab-FAILED">Başarısız <span class="badge" id="badge-FAILED">0</span></button>
+    </div>
+    <div class="product-grid-wrap" id="grid-wrap">
+      <div class="empty-state" id="empty-state">
+        <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.3"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.29 3.43A2 2 0 0 0 6.4 20h11.2M10 20a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+        <h3>Henüz ürün yok</h3>
+        <p>Shopify mağazanıza bağlanarak ürünleri listelemeye başlayın.</p>
+        <button class="btn-primary" onclick="connectShopify()" style="margin-top:0.5rem;">Bağlan</button>
       </div>
-
-      <div>
-        <label for="product-features">Key Features</label>
-        <textarea id="product-features"
-          placeholder="e.g.&#10;- Oil-free face moisturizer with hyaluronic acid&#10;- Instantly quenches dry skin&#10;- Non-comedogenic, dye-free&#10;- For extra-dry skin"
-          maxlength="1000"></textarea>
-        <div class="char-hint"><span id="char-count">0</span> / 1000</div>
-      </div>
-
-      <div class="controls-row">
-        <div class="tone-select">
-          <label for="tone-select">Writing Tone</label>
-          <select id="tone-select">
-            <option value="compelling">Compelling & Persuasive</option>
-            <option value="professional">Professional & Informative</option>
-            <option value="casual">Casual & Friendly</option>
-            <option value="luxury">Luxury & Premium</option>
-          </select>
+      <div class="product-grid" id="product-grid"></div>
+    </div>
+    <aside class="right-panel" id="right-panel">
+      <div class="rp-header"><span class="rp-title">İnteraktif Editör</span><button class="rp-close" onclick="closePanel()">&times;</button></div>
+      <div class="rp-body">
+        <div class="rp-ctx"><img id="rp-img" class="rp-ctx-img" src="" alt="" onerror="this.style.display='none'" /><div><div class="rp-ctx-name" id="rp-name">—</div><div class="rp-ctx-sub" id="rp-sub">—</div></div></div>
+        <input type="hidden" id="rp-job-id" />
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <div class="rp-section-label">Yapay Zeka Satış Metni<span class="unsaved-pill" id="unsaved-pill">Kaydedilmedi</span></div>
+          <textarea id="rp-text" class="editor-textarea" oninput="onTextEdit()" placeholder="Metin burada..."></textarea>
         </div>
-      </div>
-
-      <button id="generate-btn" class="btn-generate" onclick="generateDescription()">
-        <span class="btn-text">✦ Generate Description</span>
-        <div class="spinner"></div>
-      </button>
-
-    </div>
-  </div>
-
-  <!-- RIGHT: OUTPUT CARD -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Generated Copy</span>
-      <span id="status-tag" class="status-tag"></span>
-    </div>
-
-    <!-- Placeholder -->
-    <div id="output-placeholder" class="output-placeholder">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-      </svg>
-      <p>Fill in the product details and click Generate to see results here.</p>
-    </div>
-
-    <!-- Skeleton -->
-    <div id="skeleton-wrap" class="skeleton-wrap">
-      <div class="skeleton-line h-big w-3\/4"></div>
-      <div class="skeleton-line w-full"></div>
-      <div class="skeleton-line w-5\/6"></div>
-      <div class="skeleton-line w-full"></div>
-      <div class="skeleton-line w-3\/4"></div>
-      <div style="height:.5rem"></div>
-      <div class="skeleton-line h-big w-1\/2"></div>
-      <div class="skeleton-line w-full"></div>
-      <div class="skeleton-line w-5\/6"></div>
-      <div class="skeleton-line w-full"></div>
-      <div class="skeleton-line w-3\/4"></div>
-    </div>
-
-    <!-- Real output -->
-    <div id="output-content"></div>
-
-    <!-- Footer -->
-    <div id="output-footer" class="output-footer">
-      <div class="meta-info">
-        <span id="meta-tokens">—</span>
-        <span id="meta-time">—</span>
-      </div>
-      <button id="copy-btn" class="btn-copy" onclick="copyOutput()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-        </svg>
-        Copy text
-      </button>
-    </div>
-  </div>
-
-</div><!-- /.top-grid -->
-
-<!-- BATCH PIPELINE CARD -->
-<div class="card" id="batch-card">
-  <div class="card-header">
-    <span class="card-title">⚡ Batch Processing — Async n8n Pipeline</span>
-    <span class="nav-badge" style="background:#f3e8ff;color:#7c3aed;border-color:#ddd6fe;">n8n + Google Sheets</span>
-  </div>
-  <div class="card-body">
-
-    <p style="font-size:.875rem;color:var(--text-secondary);line-height:1.65;">
-      Process entire product catalogs automatically. Add products to your Google Sheet, paste the URL below, and click <strong>Trigger</strong>. The async pipeline reads your sheet, runs each product through the local Llama-3 model, and writes the HTML copy back — all without any manual steps.
-    </p>
-
-    <!-- Architecture diagram -->
-    <div class="arch-row">
-      <div class="arch-step"><div class="icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      </div><span>Google Sheets</span></div>
-      <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </div><span>n8n</span></div>
-      <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-      </div><span>FastAPI</span></div>
-      <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
-      </div><span>Llama-3</span></div>
-      <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-      </div><span>Webhook</span></div>
-      <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon" style="background:#d1fae5;border-color:#6ee7b7;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-      </div><span>Done</span></div>
-    </div>
-
-    <!-- Sheet URL input -->
-    <div>
-      <label for="sheet-url">Your Google Sheets URL</label>
-      <div class="sheet-input-row">
-        <input
-          id="sheet-url"
-          type="text"
-          placeholder="https://docs.google.com/spreadsheets/d/..."
-          oninput="saveSheetUrl(this.value)"
-        />
-        <a id="open-sheet-btn" class="btn-open-sheet" href="#" target="_blank" rel="noopener"
-           onclick="return openSheet()">
-          ↗ Open Sheet
-        </a>
-      </div>
-    </div>
-
-    <!-- Trigger button -->
-    <button id="trigger-btn" class="btn-trigger" onclick="triggerBatch()">
-      <span class="btn-text">🚀 Trigger n8n Pipeline</span>
-      <div class="spinner"></div>
-    </button>
-
-    <!-- Status toast -->
-    <div id="batch-toast" class="batch-toast"></div>
-
-  </div>
-</div>
-
-<!-- AGENT CHAT CARD -->
-<div class="card" id="agent-card" style="margin-top: 1.5rem;">
-  <div class="card-header">
-    <span class="card-title">🤖 AI Sales Assistant</span>
-    <span class="nav-badge" style="background:#dbeafe;color:#2563eb;border-color:#bfdbfe;">Gemini Agent</span>
-  </div>
-  <div class="card-body" style="padding: 0; display: flex; flex-direction: column; height: 500px;">
-    <!-- Chat History -->
-    <div id="chat-history" style="flex: 1; padding: 1.4rem; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 1rem;">
-      <div class="chat-message assistant">
-        <div class="bubble">Hello! I am your AI-powered sales assistant. How can I help you today?</div>
-      </div>
-    </div>
-    
-    <!-- Input Area -->
-    <div style="padding: 1rem 1.4rem; border-top: 1px solid var(--border); background: var(--surface); display: flex; gap: .75rem; align-items: flex-end;">
-      <textarea id="chat-input" placeholder="Ask me about products (e.g., 'Running shoes under $50')" style="min-height: 50px; height: 50px; flex: 1; resize: none; overflow: hidden; padding: 12px;"></textarea>
-      <button id="chat-send-btn" class="btn-generate" onclick="sendChatMessage()" style="height: 50px; padding: 0 1.25rem;">Send</button>
-    </div>
-  </div>
-</div>
-
-<!-- TRENDYOL OPTIMIZER CARD -->
-<div class="card" id="shopify-card" style="margin-top: 1.5rem;">
-  <div class="card-header">
-    <span class="card-title">🛒 Shopify Optimizer</span>
-    <span class="nav-badge" style="background:#ffedd5;color:#f97316;border-color:#fdba74;">Shopify V2 API</span>
-  </div>
-  <div class="card-body">
-    <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-        <button class="btn-generate" onclick="connectShopify()" id="ty-connect-btn" style="background: #f97316;">
-            🔗 Bağlantıyı Test Et
-        </button>
-    </div>
-    
-    <div id="ty-status-box" style="padding: 1rem; border-radius: 6px; background: var(--bg); display: none; font-size: 0.9rem;"></div>
-    
-    <div id="ty-products-container" style="display: none; flex-direction: column; gap: 1rem;">
-        <div style="display: flex; gap: 1rem;">
-            <button id="btn-optimize-all" class="btn-generate" onclick="optimizeShopify()" style="background: var(--accent);">
-                <span class="spinner"></span>
-                <span class="btn-text">Tümünü Optimize Et</span>
-            </button>
-            <button onclick="refreshShopifyJobs()" class="btn-generate" style="background: white; color: var(--text-secondary); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
-                Kuyruğu Yenile
-            </button>
-        </div>
-        
-        <div id="ty-jobs-list" style="display: flex; flex-direction: column; gap: 1rem; max-height: 600px; overflow-y: auto; padding-right: 0.5rem; margin-top: 1rem;">
-            <!-- Jobs will be populated here -->
-        </div>
-        
-        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem;">
-            ⚖️ <b>Feragatname:</b> Yapay zeka tarafından üretilen içeriklerde hata olabilir. Güncellenen ürün açıklamalarının doğruluğu satıcının sorumluluğundadır.
-        </p>
-        
-        <div style="margin-top: 1rem; padding: 1rem; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 6px; font-size: 0.85rem; color: #3730a3;">
-            <b>💡 En İyi Sonuç İçin Kullanım İpuçları:</b>
-            <ul style="margin-top: 0.5rem; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
-                <li><b>Görsel Sınırları:</b> Yapay zeka, fotoğraftan rengi, dokuyu ve modeli anlar ancak gizli teknik özellikleri (su geçirmezlik, RAM kapasitesi, pil ömrü vb.) bilemez.</li>
-                <li><b>Başlıkların Önemi:</b> Shopify ürün başlıklarınızda <i>"Su Geçirmez Erkek Bot"</i> gibi kilit kelimeler geçiyorsa, model bunu görsel analiziyle birleştirerek <b>satış metninizi otomatik olarak su geçirmezlik üzerine kurgular.</b></li>
-            </ul>
-        </div>
-    </div>
-  </div>
-</div>
-
-<!-- JOB MODAL -->
-<div id="job-modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
-    <div style="background: white; border-radius: 16px; width: 90%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid rgba(255,255,255,0.1);">
-        <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-radius: 16px 16px 0 0;">
-            <div style="font-weight: 600; font-size: 1.1rem; color: #0f172a; letter-spacing: -0.01em;">Ürün İnceleme & Düzenleme</div>
-            <button onclick="closeModal()" style="background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 24px; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">&times;</button>
-        </div>
-        
-        <div style="padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; flex: 1; background: #fafafa;">
-            <input type="hidden" id="modal-job-id" />
-            <div style="display: flex; gap: 1.25rem; align-items: center;">
-                <img id="modal-img" src="" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; display: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" onerror="this.style.display='none'" />
-                <div>
-                    <div id="modal-title" style="font-weight: 600; color: #0f172a; font-size: 1.05rem;">Title</div>
-                    <div id="modal-barcode" style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Barcode</div>
-                </div>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;">
+          <div class="rp-section-label">Hızlı Düzenleme</div>
+          <div class="quick-actions">
+            <button class="qa-chip" onclick="quickRevise('Daha SEO odaklı yap')">SEO Odaklı</button>
+            <button class="qa-chip" onclick="quickRevise('Daha enerjik ve ikna edici yap')">Enerjik</button>
+            <button class="qa-chip" onclick="quickRevise('Kısa ve öz hale getir')">Kısa & Öz</button>
+            <button class="qa-chip" onclick="doRegenerate()">Baştan Yaz</button>
+            <button class="qa-chip custom" onclick="toggleCustomReq()">Özel İstek</button>
+          </div>
+          <div class="custom-request-box" id="custom-req-box">
+            <div class="custom-request-label">Özel düzeltme isteğinizi yazın</div>
+            <textarea id="custom-req-input" class="custom-request-input" placeholder="Örn: Daha lüks bir dil kullan, 3 madde listesi ekle..."></textarea>
+            <div class="custom-req-actions">
+              <button class="btn-sm ghost" onclick="toggleCustomReq()">İptal</button>
+              <button class="btn-sm accent" onclick="submitCustomReq()">Uygula</button>
             </div>
-            
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label style="font-size: 0.9rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px;">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    Yapay Zeka Satış Metni <span style="font-weight: normal; color: #94a3b8; font-size: 0.8rem;">(İstediğiniz gibi düzenleyebilirsiniz)</span>
-                </label>
-                <textarea id="modal-text" style="width: 100%; height: 280px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', system-ui, sans-serif; font-size: 0.95rem; line-height: 1.6; resize: vertical; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></textarea>
-            </div>
-            
-            <!-- AI Revise Box -->
-            <div id="revise-box" style="display: none; margin-top: 0.5rem; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
-                <div style="font-size: 0.85rem; font-weight: 600; color: #166534; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                    Yapay Zeka İle Düzelt
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="revise-prompt" placeholder="Örn: Daha kısa yaz, enerjik bir dil kullan..." style="flex: 1; padding: 10px 14px; border: 1px solid #86efac; border-radius: 6px; font-size: 0.9rem; background: #ffffff;" />
-                    <button onclick="submitRevise()" id="btn-submit-revise" style="background: #16a34a; color: white; border: none; border-radius: 6px; padding: 0 20px; font-size: 0.9rem; cursor: pointer; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Uygula</button>
-                    <button onclick="document.getElementById('revise-box').style.display='none'" style="background: transparent; color: #64748b; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 500;">İptal</button>
-                </div>
-            </div>
+          </div>
         </div>
-        
-        <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-radius: 0 0 16px 16px;">
-            <div style="display: flex; gap: 12px;">
-                <button onclick="document.getElementById('revise-box').style.display='block'; document.getElementById('revise-prompt').focus();" class="btn-generate" style="background: #f1f5f9; border: none; color: #334155; padding: 10px 18px; font-size: 0.9rem; border-radius: 8px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    Düzelt
-                </button>
-                <button onclick="regenerateJob()" id="btn-regenerate" class="btn-generate" style="background: #fef2f2; border: none; color: #dc2626; padding: 10px 18px; font-size: 0.9rem; border-radius: 8px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin-right: 6px; vertical-align: text-bottom;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                    Baştan Yaz
-                </button>
-            </div>
-            <button onclick="saveAndApproveJob()" id="btn-save-approve" class="btn-generate" style="background: var(--accent); color: white; border: none; padding: 10px 24px; font-size: 0.95rem; border-radius: 8px; font-weight: 600;">
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                Kaydet ve Onayla
-            </button>
-        </div>
-    </div>
-</div>
+      </div>
+      <div class="rp-footer"><button class="btn-approve" id="btn-approve" onclick="doApprove()">Onayla ve Shopify'a Gönder</button></div>
+    </aside>
+  </div>
 
+  <div id="module-batch" class="module">
+    <div class="page-header"><div><h1>Batch Pipeline</h1><p>n8n + Google Sheets ile toplu işlem</p></div></div>
+    <div class="basic-wrap">
+      <div><div class="label-sm">Google Sheets URL</div><input id="sheet-url" class="basic-input" type="text" placeholder="https://docs.google.com/spreadsheets/d/..." /></div>
+      <button class="btn-primary" style="width:fit-content;" onclick="triggerBatch()">Pipeline Başlat</button>
+    </div>
+  </div>
+
+  <div id="module-manual" class="module">
+    <div class="page-header"><div><h1>Açıklama Üretici</h1><p>Fine-tuned Llama-3 ile ürün açıklaması</p></div></div>
+    <div class="basic-wrap">
+      <div><div class="label-sm">Ürün Adı</div><input id="product-title" class="basic-input" type="text" placeholder="Ürün adı..." /></div>
+      <div><div class="label-sm">Özellikler</div><textarea id="product-features" class="basic-input" style="min-height:100px;resize:vertical;" placeholder="- Özellik 1"></textarea></div>
+      <div><div class="label-sm">Ton</div>
+        <select id="tone-select" class="basic-input">
+          <option value="compelling">İkna Edici</option><option value="professional">Profesyonel</option><option value="casual">Samimi</option><option value="luxury">Lüks</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="width:fit-content;" onclick="generateDescription()">Oluştur</button>
+      <div id="gen-output" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:0.83rem;line-height:1.65;white-space:pre-wrap;"></div>
+    </div>
+  </div>
 </main>
 
-<!-- FOOTER -->
-<footer>
-  Built with <strong>FastAPI</strong> + <strong>Llama-3</strong> fine-tuned on 2,207 synthetic e-commerce samples.
-  Running fully local — zero cloud dependency.
-</footer>
+<div class="floating-chat" id="floating-chat">
+  <div class="chat-trigger" onclick="toggleChat()" id="chat-trigger">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </div>
+  <div class="chat-window" id="chat-win">
+    <div class="cw-header">AI Satış Asistanı<button onclick="toggleChat()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;">&times;</button></div>
+    <div class="cw-body" id="cw-body"><div class="cb ai">Merhaba! Ürünleriniz hakkında bir şeyler sorun.</div></div>
+    <div class="cw-footer"><input class="cw-input" id="cw-input" placeholder="Mesajınız..." onkeypress="if(event.key==='Enter') sendChat()" /><button class="cw-send" onclick="sendChat()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
 
 <script>
-  const textarea = document.getElementById('product-features');
-  const charCount = document.getElementById('char-count');
-  textarea.addEventListener('input', () => { charCount.textContent = textarea.value.length; });
+  let productsArray = [], activeFilter = 'all', selectedId = null;
 
-  let lastOutputText = '';
-
-  async function generateDescription() {
-    const title    = document.getElementById('product-title').value.trim();
-    const features = document.getElementById('product-features').value.trim();
-    const tone     = document.getElementById('tone-select').value;
-
-    if (!title) {
-      document.getElementById('product-title').focus();
-      document.getElementById('product-title').style.borderColor = '#ef4444';
-      setTimeout(() => document.getElementById('product-title').style.borderColor = '', 1500);
-      return;
-    }
-
-    // UI: loading state
-    const btn = document.getElementById('generate-btn');
-    btn.classList.add('loading');
-    btn.disabled = true;
-
-    document.getElementById('output-placeholder').style.display = 'none';
-    document.getElementById('output-content').style.display     = 'none';
-    document.getElementById('output-footer').style.display      = 'none';
-    document.getElementById('skeleton-wrap').style.display      = 'flex';
-
-    const statusTag = document.getElementById('status-tag');
-    statusTag.className = 'status-tag';
-
-    const startTime = Date.now();
-
-    try {
-      const tonePrompts = {
-        compelling:   'Write a compelling, persuasive, and SEO-friendly e-commerce product description.',
-        professional: 'Write a professional, informative, and detailed e-commerce product description.',
-        casual:       'Write a casual, friendly, and approachable e-commerce product description.',
-        luxury:       'Write a luxurious, premium, and elegant e-commerce product description.',
-      };
-
-      const response = await fetch('/description/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_name: title,
-          features: features
-            ? features.split('\n').filter(Boolean).map(f => f.replace(/^[-*]\s*/, '')).join(', ')
-            : '',
-          tone: tone,
-        }),
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.detail || `Server error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      lastOutputText = data.description || '';
-
-      // Show result
-      document.getElementById('skeleton-wrap').style.display = 'none';
-      const outputEl = document.getElementById('output-content');
-      outputEl.textContent = lastOutputText;
-      outputEl.style.display = 'block';
-
-      document.getElementById('meta-tokens').textContent =
-        data.output_tokens ? `${data.output_tokens} tokens` : '';
-      document.getElementById('meta-time').textContent = `${elapsed}s`;
-
-      const footer = document.getElementById('output-footer');
-      footer.style.display = 'flex';
-
-      statusTag.textContent = 'Ready';
-      statusTag.className = 'status-tag success';
-
-      const copyBtn = document.getElementById('copy-btn');
-      copyBtn.classList.remove('copied');
-      copyBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy text`;
-
-    } catch (err) {
-      document.getElementById('skeleton-wrap').style.display = 'none';
-      document.getElementById('output-placeholder').style.display = 'flex';
-
-      const p = document.querySelector('#output-placeholder p');
-      p.style.color = '#ef4444';
-      p.textContent = err.message || 'Something went wrong. Is the FastAPI server running?';
-
-      statusTag.textContent = 'Error';
-      statusTag.className = 'status-tag error';
-    } finally {
-      btn.classList.remove('loading');
-      btn.disabled = false;
-    }
+  function switchTab(id) {
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+    document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('module-' + id).classList.add('active');
+    document.getElementById('nav-' + id).classList.add('active');
   }
 
-  function copyOutput() {
-    if (!lastOutputText) return;
-    navigator.clipboard.writeText(lastOutputText).then(() => {
-      const btn = document.getElementById('copy-btn');
-      btn.classList.add('copied');
-      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy text`;
-      }, 2500);
+  async function connectShopify() {
+    const btn = document.getElementById('btn-connect');
+    btn.disabled = true; btn.textContent = 'Bağlanıyor...';
+    try {
+      const r = await fetch('/shopify/connect'); const d = await r.json();
+      if(!r.ok) throw new Error(d.detail);
+      toast(`${d.total_products} ürün bulundu.`, 'success'); await fetchJobs();
+    } catch(e) { toast('Hata: ' + e.message, 'error'); }
+    finally { btn.disabled = false; btn.textContent = 'Shopify Bağlan'; }
+  }
+
+  async function fetchJobs() {
+    try { const r = await fetch('/shopify/jobs'); productsArray = await r.json(); renderGrid(); } catch(e) {}
+  }
+
+  function mapStatus(s) {
+    if(s==='TEXT_GENERATING'||s==='VISION_PROCESSING') return 'VISION';
+    if(s==='APPROVAL') return 'AWAITING_APPROVAL';
+    return s;
+  }
+
+  function setFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    (document.getElementById('tab-' + f) || document.getElementById('tab-all')).classList.add('active');
+    renderGrid();
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('product-grid'), empty = document.getElementById('empty-state');
+    const counts = { all: productsArray.length, PENDING:0, VISION:0, AWAITING_APPROVAL:0, COMPLETED:0, FAILED:0 };
+    productsArray.forEach(j => { const s = mapStatus(j.status); if(counts[s]!==undefined) counts[s]++; });
+    Object.entries(counts).forEach(([k,v]) => { const el = document.getElementById('badge-'+k); if(el) el.textContent = v; });
+
+    const visible = activeFilter==='all' ? productsArray : productsArray.filter(j => mapStatus(j.status)===activeFilter);
+    grid.innerHTML = '';
+    if(!visible.length) { empty.style.display='flex'; grid.style.display='none'; return; }
+    empty.style.display='none'; grid.style.display='grid';
+
+    const bm = { PENDING:['badge-pending','Bekliyor'], VISION:['badge-vision','İşleniyor'], AWAITING_APPROVAL:['badge-approval','Onay Bekliyor'], COMPLETED:['badge-done','Tamamlandı'], FAILED:['badge-failed','Başarısız'] };
+    visible.forEach(job => {
+      const st = mapStatus(job.status), ia = (st==='AWAITING_APPROVAL'||st==='COMPLETED');
+      const [bc, bl] = bm[st]||['badge-pending','—'];
+      let ex='', ft='';
+      if(st==='VISION') ex=`<div class="p-card-progress"><div class="dot"></div>İşleniyor...</div>`;
+      if(st==='AWAITING_APPROVAL') ft=`<div class="p-card-footer"><span></span><span class="p-card-action">İncele &amp; Düzenle →</span></div>`;
+      else if(st==='COMPLETED') ft=`<div class="p-card-footer"><span></span><span class="p-card-action" style="color:var(--success)">Tamamlandı ✓</span></div>`;
+      const card = document.createElement('div');
+      card.className = `p-card ${selectedId===job.id?'selected':''}`;
+      card.dataset.id = job.id;
+      if(ia) card.onclick = () => openPanel(job.id);
+      card.innerHTML = `
+        <div class="p-card-img-wrap">
+          ${job.image_url?`<img class="p-card-img" src="${job.image_url}" onerror="this.style.display='none'">`:`<div class="p-card-img-placeholder"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
+          <span class="p-card-status-badge ${bc}">${bl}</span>
+        </div>
+        <div class="p-card-body"><div class="p-card-title">${job.original_title}</div><div class="p-card-meta">Barkod: ${job.barcode||'Yok'}</div>${ex}</div>
+        ${ft}`;
+      grid.appendChild(card);
     });
   }
 
-  // Allow Ctrl+Enter to trigger generation
-  document.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') generateDescription();
-  });
-
-  // ── Batch Pipeline ─────────────────────────────────────────────────────
-  // Restore saved sheet URL from localStorage
-  const savedUrl = localStorage.getItem('sheetUrl') || '';
-  if (savedUrl) document.getElementById('sheet-url').value = savedUrl;
-
-  function saveSheetUrl(val) {
-    localStorage.setItem('sheetUrl', val.trim());
+  function openPanel(jobId) {
+    const job = productsArray.find(j => j.id===jobId); if(!job) return;
+    selectedId = jobId;
+    document.getElementById('rp-job-id').value = jobId;
+    document.getElementById('rp-name').textContent = job.original_title;
+    document.getElementById('rp-sub').textContent = 'Barkod: '+(job.barcode||'Yok');
+    document.getElementById('rp-text').value = job.generated_description||'';
+    document.getElementById('unsaved-pill').style.display='none';
+    const img = document.getElementById('rp-img');
+    if(job.image_url){img.src=job.image_url;img.style.display='block';}else img.style.display='none';
+    document.getElementById('custom-req-box').classList.remove('open');
+    document.getElementById('right-panel').classList.add('open');
+    document.getElementById('floating-chat').classList.add('shifted');
+    document.querySelectorAll('.p-card').forEach(c=>c.classList.toggle('selected',parseInt(c.dataset.id)===jobId));
   }
 
-  function openSheet() {
-    const url = document.getElementById('sheet-url').value.trim();
-    if (!url) { alert('Please paste your Google Sheets URL first.'); return false; }
-    window.open(url, '_blank', 'noopener');
-    return false;
+  function closePanel() {
+    document.getElementById('right-panel').classList.remove('open');
+    document.getElementById('floating-chat').classList.remove('shifted');
+    selectedId=null; document.querySelectorAll('.p-card').forEach(c=>c.classList.remove('selected'));
   }
-
-  async function triggerBatch() {
-    const sheetUrl = document.getElementById('sheet-url').value.trim();
-    const btn = document.getElementById('trigger-btn');
-    const toast = document.getElementById('batch-toast');
-
-    btn.classList.add('loading');
-    btn.disabled = true;
-    toast.style.display = 'none';
-    toast.className = 'batch-toast';
-
-    try {
-      const resp = await fetch('/description/trigger-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sheet_url: sheetUrl || null }),
-      });
-
-      const data = await resp.json();
-
-      if (!resp.ok) {
-        throw new Error(data.detail || `Server error: ${resp.status}`);
-      }
-
-      toast.textContent = '✅ ' + data.message;
-      toast.className = 'batch-toast success';
-      toast.style.display = 'block';
-
-    } catch (err) {
-      toast.textContent = '❌ ' + (err.message || 'Something went wrong.');
-      toast.className = 'batch-toast error';
-      toast.style.display = 'block';
-    } finally {
-      btn.classList.remove('loading');
-      btn.disabled = false;
-    }
+  function onTextEdit() { document.getElementById('unsaved-pill').style.display='inline-flex'; }
+  function toggleCustomReq() { const b=document.getElementById('custom-req-box'); b.classList.toggle('open'); if(b.classList.contains('open')) document.getElementById('custom-req-input').focus(); }
+  async function submitCustomReq() { const p=document.getElementById('custom-req-input').value.trim(); if(!p){toast('İstek yazın','error');return;} document.getElementById('custom-req-box').classList.remove('open'); await doRevise(p); document.getElementById('custom-req-input').value=''; }
+  async function quickRevise(p) { await doRevise(p); }
+  async function doRevise(promptStr) {
+    if(!selectedId) return;
+    const ta=document.getElementById('rp-text'); ta.classList.add('blurred');
+    try { const r=await fetch(`/shopify/jobs/${selectedId}/revise`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptStr})}); const d=await r.json(); if(!r.ok) throw new Error(d.detail); ta.value=d.new_text; document.getElementById('unsaved-pill').style.display='inline-flex'; toast('Güncellendi','success'); } catch(e){toast('Hata: '+e.message,'error');}
+    finally { ta.classList.remove('blurred'); }
   }
-  // ── Agent Chat ─────────────────────────────────────────────────────
-  let chatHistory = [];
-
-  function appendMessage(role, content, toolsUsed = []) {
-    const historyDiv = document.getElementById('chat-history');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'chat-message ' + role;
-    
-    let html = `<div class="bubble">${content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>`;
-    
-    if (toolsUsed && toolsUsed.length > 0) {
-      const toolsStr = toolsUsed.map(t => `<code>${t}</code>`).join(', ');
-      html += `<div class="tools-used"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Used tools: ${toolsStr}</div>`;
-    }
-    
-    msgDiv.innerHTML = html;
-    historyDiv.appendChild(msgDiv);
-    historyDiv.scrollTop = historyDiv.scrollHeight;
+  async function doRegenerate() { if(!selectedId) return; try{const r=await fetch(`/shopify/jobs/${selectedId}/regenerate`,{method:'POST',headers:{'Content-Type':'application/json'}});if(!r.ok)throw new Error();toast('Kuyruğa eklendi','info');closePanel();await fetchJobs();}catch(e){toast('Hata','error');} }
+  async function doApprove() {
+    if(!selectedId) return;
+    const btn=document.getElementById('btn-approve'),text=document.getElementById('rp-text').value;
+    btn.disabled=true; btn.textContent='Gönderiliyor...';
+    try { const r=await fetch(`/shopify/jobs/${selectedId}/manual_approve`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({manual_text:text})}); if(!r.ok) throw new Error(); const job=productsArray.find(j=>j.id===selectedId); if(job) job.status='COMPLETED'; toast('Shopify güncellendi!','success'); closePanel(); renderGrid(); } catch(e){toast('Gönderim hatası','error');}
+    finally { btn.disabled=false; btn.textContent="Onayla ve Shopify'a Gönder"; }
   }
-
-  async function sendChatMessage() {
-    const inputEl = document.getElementById('chat-input');
-    const btn = document.getElementById('chat-send-btn');
-    const text = inputEl.value.trim();
-    if (!text) return;
-    
-    // Disable input
-    inputEl.value = '';
-    inputEl.disabled = true;
-    btn.disabled = true;
-    btn.innerHTML = 'Please wait...';
-    
-    // Add user message
-    appendMessage('user', text);
-    
-    try {
-      const resp = await fetch('/agent/chat', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-API-Key': 'tarik-proje'
-        },
-        body: JSON.stringify({
-          message: text,
-          conversation_history: chatHistory.length > 0 ? chatHistory : undefined
-        }),
-      });
-      
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.detail || `Error: ${resp.status}`);
-      
-      // Add assistant response
-      appendMessage('assistant', data.answer, data.tools_used);
-      
-      // Update history
-      chatHistory.push({ role: 'user', content: text });
-      chatHistory.push({ role: 'assistant', content: data.answer });
-      
-    } catch (err) {
-      appendMessage('assistant', '❌ An error occurred: ' + err.message);
-    } finally {
-      inputEl.disabled = false;
-      btn.disabled = false;
-      btn.innerHTML = 'Send';
-      inputEl.focus();
-    }
-  }
-
-  document.getElementById('chat-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendChatMessage();
-    }
-  });
-
-  // ── Shopify Integration ─────────────────────────────────────────────────────
-  let shopifyProducts = [];
-  
-  async function connectShopify() {
-      const btn = document.getElementById('ty-connect-btn');
-      const statusBox = document.getElementById('ty-status-box');
-      
-      btn.innerHTML = 'Bağlanıyor...';
-      btn.disabled = true;
-      
-      try {
-          const resp = await fetch('/shopify/connect');
-          const data = await resp.json();
-          
-          if (!resp.ok) throw new Error(data.detail || 'Connection failed');
-          
-          statusBox.style.display = 'block';
-          statusBox.innerHTML = `✅ <b>Bağlantı Başarılı!</b> Toplam ${data.total_products} ürün bulundu.<br>⚠️ ${data.needs_optimization.length} ürünün açıklaması eksik/yetersiz.`;
-          
-          shopifyProducts = data.needs_optimization;
-          
-          if (shopifyProducts.length > 0) {
-              document.getElementById('ty-products-container').style.display = 'flex';
-              refreshShopifyJobs();
-          }
-      } catch (e) {
-          statusBox.style.display = 'block';
-          statusBox.innerHTML = `❌ <b>Hata:</b> ${e.message}`;
-      } finally {
-          btn.innerHTML = '🔗 Bağlantıyı Test Et';
-          btn.disabled = false;
-      }
-  }
-
-  async function optimizeShopify() {
-      if (shopifyProducts.length === 0) return;
-      
-      const btn = document.getElementById('btn-optimize-all');
-      btn.classList.add('loading');
-      btn.disabled = true;
-      
-      try {
-          const resp = await fetch('/shopify/optimize', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ items: shopifyProducts })
-          });
-          
-          if (resp.ok) {
-              refreshShopifyJobs();
-          }
-      } catch(e) {
-          alert('Optimize hatası: ' + e.message);
-      } finally {
-          btn.classList.remove('loading');
-          btn.disabled = false;
-      }
-  }
-
-  let allJobs = [];
-
-  async function refreshShopifyJobs() {
-      try {
-          const resp = await fetch('/shopify/jobs');
-          allJobs = await resp.json();
-          
-          const container = document.getElementById('ty-jobs-list');
-          container.innerHTML = '';
-          
-          allJobs.forEach(job => {
-              const statusColors = {
-                  'PENDING': { bg: '#f3f4f6', text: '#4b5563', label: 'Bekliyor' },
-                  'VISION_PROCESSING': { bg: '#e0e7ff', text: '#4338ca', label: 'Görsel Analizi' },
-                  'TEXT_GENERATING': { bg: '#dbeafe', text: '#1d4ed8', label: 'Metin Üretiliyor' },
-                  'AWAITING_APPROVAL': { bg: '#ffedd5', text: '#c2410c', label: 'Onay Bekliyor' },
-                  'SENDING': { bg: '#fef3c7', text: '#b45309', label: 'Gönderiliyor' },
-                  'COMPLETED': { bg: '#d1fae5', text: '#047857', label: 'Tamamlandı' },
-                  'FAILED': { bg: '#fee2e2', text: '#b91c1c', label: 'Başarısız' }
-              };
-              
-              const st = job.status === 'APPROVAL' ? 'AWAITING_APPROVAL' : job.status;
-              const color = statusColors[st] || statusColors['PENDING'];
-              const statusBadge = `<span style="padding: 4px 10px; background:${color.bg}; color:${color.text}; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">${color.label}</span>`;
-              
-              let actionBtn = '';
-              let details = '';
-              let thumbnailHtml = '';
-
-              if (job.image_url) {
-                  thumbnailHtml = `<img src="${job.image_url}" alt="${job.original_title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;" onerror="this.style.display='none'">`;
-              }
-              
-              if (job.status === 'APPROVAL' || job.status === 'AWAITING_APPROVAL') {
-                  actionBtn = `<button onclick="openModal(${job.id})" class="btn-generate" style="background:#10b981; padding: 6px 12px; font-size: 13px;">🔍 İncele / Düzenle</button>`;
-              } else if (job.status === 'FAILED' && job.error_message) {
-                  details = `
-                      <div style="margin-top: 0.75rem; padding: 10px; background: #fef2f2; border-left: 4px solid #ef4444; color: #b91c1c; font-size: 12px; border-radius: 4px;">
-                          <b>Hata Detayı:</b> ${job.error_message}
-                      </div>
-                  `;
-              } else if (job.status === 'COMPLETED') {
-                  details = `
-                      <div style="margin-top: 0.75rem; padding: 10px; background: #ecfdf5; border-left: 4px solid #10b981; color: #047857; font-size: 12px; border-radius: 4px;">
-                          ✅ Shopify mağazasına başarıyla gönderildi ve ürün güncellendi!
-                      </div>
-                  `;
-              }
-              
-              container.innerHTML += `
-                  <div style="background: var(--surface); border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: box-shadow 0.2s;">
-                      <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center;">
-                          <div style="display: flex; gap: 1rem; flex: 1; align-items: center;">
-                              ${thumbnailHtml}
-                              <div>
-                                  <div style="font-weight: 600; color: #111827; font-size: 14px; margin-bottom: 2px;">${job.original_title}</div>
-                                  <div style="font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 8px;">
-                                      <span>Barkod: <b>${job.barcode || 'Yok'}</b></span>
-                                  </div>
-                              </div>
-                          </div>
-                          <div style="display: flex; align-items: center; gap: 1rem;">
-                              ${statusBadge}
-                              ${actionBtn}
-                          </div>
-                      </div>
-                      ${details}
-                  </div>
-              `;
-          });
-      } catch (e) {
-          console.error("Jobs fetch failed", e);
-      }
-  }
-
-  // --- Modal Logic ---
-  function openModal(jobId) {
-      const job = allJobs.find(j => j.id === jobId);
-      if (!job) return;
-      
-      document.getElementById('modal-job-id').value = job.id;
-      document.getElementById('modal-title').textContent = job.original_title;
-      document.getElementById('modal-barcode').textContent = 'Barkod: ' + (job.barcode || 'Yok');
-      document.getElementById('modal-text').value = job.generated_description || '';
-      
-      const img = document.getElementById('modal-img');
-      if (job.image_url) {
-          img.src = job.image_url;
-          img.style.display = 'block';
-      } else {
-          img.style.display = 'none';
-      }
-      
-      document.getElementById('revise-box').style.display = 'none';
-      document.getElementById('revise-prompt').value = '';
-      
-      document.getElementById('job-modal').style.display = 'flex';
-  }
-  
-  function closeModal() {
-      document.getElementById('job-modal').style.display = 'none';
-  }
-  
-  async function saveAndApproveJob() {
-      const jobId = document.getElementById('modal-job-id').value;
-      const text = document.getElementById('modal-text').value;
-      const btn = document.getElementById('btn-save-approve');
-      
-      btn.innerHTML = 'Kaydediliyor...';
-      btn.disabled = true;
-      
-      try {
-          const resp = await fetch(`/shopify/jobs/${jobId}/manual_approve`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ manual_text: text })
-          });
-          if (!resp.ok) throw new Error('Onaylanırken hata oluştu');
-          
-          closeModal();
-          refreshShopifyJobs();
-      } catch (e) {
-          alert(e.message);
-      } finally {
-          btn.innerHTML = '✅ Kaydet ve Onayla';
-          btn.disabled = false;
-      }
-  }
-  
-  async function submitRevise() {
-      const jobId = document.getElementById('modal-job-id').value;
-      const prompt = document.getElementById('revise-prompt').value.trim();
-      if (!prompt) return;
-      
-      const btn = document.getElementById('btn-submit-revise');
-      btn.innerHTML = 'Bekleyin...';
-      btn.disabled = true;
-      document.getElementById('modal-text').disabled = true;
-      
-      try {
-          const resp = await fetch(`/shopify/jobs/${jobId}/revise`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ prompt: prompt })
-          });
-          const data = await resp.json();
-          if (!resp.ok) throw new Error(data.detail || 'Revizyon hatası');
-          
-          document.getElementById('modal-text').value = data.new_text;
-          document.getElementById('revise-box').style.display = 'none';
-          document.getElementById('revise-prompt').value = '';
-      } catch (e) {
-          alert(e.message);
-      } finally {
-          btn.innerHTML = 'Uygula';
-          btn.disabled = false;
-          document.getElementById('modal-text').disabled = false;
-      }
-  }
-  
-  async function regenerateJob() {
-      const jobId = document.getElementById('modal-job-id').value;
-      const btn = document.getElementById('btn-regenerate');
-      
-      btn.innerHTML = 'Bekleyin...';
-      btn.disabled = true;
-      
-      try {
-          const resp = await fetch(`/shopify/jobs/${jobId}/regenerate`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' }
-          });
-          if (!resp.ok) throw new Error('Hata oluştu');
-          
-          closeModal();
-          refreshShopifyJobs();
-      } catch (e) {
-          alert(e.message);
-      } finally {
-          btn.innerHTML = '🔄 Baştan Yaz';
-          btn.disabled = false;
-      }
-  }
+  function toggleChat() { const w=document.getElementById('chat-win'); w.style.display=w.style.display==='flex'?'none':'flex'; }
+  async function sendChat() { const inp=document.getElementById('cw-input'),t=inp.value.trim(); if(!t) return; const b=document.getElementById('cw-body'); b.innerHTML+=`<div class="cb user">${t}</div>`; inp.value=''; try{const r=await fetch('/agent/chat',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':'tarik-proje'},body:JSON.stringify({message:t})});const d=await r.json();b.innerHTML+=`<div class="cb ai">${d.answer||'Hata'}</div>`;}catch(e){b.innerHTML+=`<div class="cb ai">Bağlantı hatası</div>`;} b.scrollTop=b.scrollHeight; }
+  function toast(msg,type='info'){const c=document.getElementById('toasts'),t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3200);}
+  async function triggerBatch(){const u=document.getElementById('sheet-url').value.trim();toast(u?'Pipeline tetiklendi.':'URL girin.',u?'success':'error');}
+  async function generateDescription(){const ti=document.getElementById('product-title').value.trim();if(!ti){toast('Ürün adı girin','error');return;}toast('Üretiliyor...','info');try{const r=await fetch('/description/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product_name:ti,features:document.getElementById('product-features').value,tone:document.getElementById('tone-select').value})});const d=await r.json();const o=document.getElementById('gen-output');o.textContent=d.description||'Sonuç yok';o.style.display='block';}catch(e){toast('Hata','error');}}
+  fetchJobs(); setInterval(fetchJobs,5000);
 </script>
-
 </body>
 </html>

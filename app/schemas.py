@@ -57,6 +57,7 @@ class ProductSearchResponse(BaseModel):
 class DescriptionRequest(BaseModel):
     product_name: str = Field(min_length=2, max_length=200)
     features: str | None = Field(default=None, max_length=1000)
+    tone: str | None = Field(default="compelling", description="Writing tone (e.g., compelling, professional, luxury)")
 
 
 class DescriptionResponse(BaseModel):

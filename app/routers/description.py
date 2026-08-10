@@ -44,7 +44,8 @@ class TriggerBatchResponse(BaseModel):
 @router.post("/generate", response_model=DescriptionResponse)
 async def generate_description(req: DescriptionRequest):
     """Tek ürün için anlık açıklama üretir (mevcut endpoint)."""
-    prompt = f"Title: {req.product_name}\n\nFeatures:\n{req.features if req.features else ''}"
+    tone_instruction = f"Make the tone {req.tone}." if req.tone else ""
+    prompt = f"Title: {req.product_name}\n\nFeatures:\n{req.features if req.features else ''}\n\n{tone_instruction}"
     text = await generate_ecommerce_description(prompt)
     return DescriptionResponse(description=text, model="ecommerce-llama3")
 

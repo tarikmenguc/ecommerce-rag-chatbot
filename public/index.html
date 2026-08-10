@@ -583,17 +583,46 @@
   function toggleChat() { const w=document.getElementById('chat-win'); w.style.display=w.style.display==='flex'?'none':'flex'; }
   function appendChat(role,text) { const b=document.getElementById('cw-body'),d=document.createElement('div'); d.className='cb '+role; d.textContent=text; b.appendChild(d); b.scrollTop=b.scrollHeight; }
   async function sendChat() {
-    const inp=document.getElementById('cw-input'),t=inp.value.trim(); if(!t) return;
-    appendChat('user',t); inp.value='';
-    try { const r=await fetch('/agent/chat',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':'tarik-proje'},body:JSON.stringify({message:t})}); const d=await r.json(); appendChat('ai',d.answer||'Error'); }
-    catch(e){appendChat('ai','Connection error');}
+    const inp=document.getElementById('cw-input'), t=inp.value.trim(); if(!t) return;
+    appendChat('user', t); inp.value='';
+    let finalMsg = t;
+    if (selectedId) {
+      const job = productsArray.find(j => j.id === selectedId);
+      if (job) {
+        finalMsg = `[CONTEXT: The user is currently viewing the product titled "${job.original_title}" with barcode "${job.barcode || 'N/A'}" and generated description: "${job.generated_description || 'None'}"]. ${t}`;
+      }
+    }
+    try { 
+      const r = await fetch('/agent/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-API-Key': 'tarik-proje'},
+        body: JSON.stringify({ message: finalMsg })
+      });
+      const d = await r.json(); 
+      if(!r.ok) throw new Error(d.detail || 'Error');
+      appendChat('ai', d.answer || 'Error'); 
+    }
+    catch(e){ appendChat('ai', 'Connection error: ' + e.message); }
   }
 
   // TOAST
   function toast(msg,type='info'){const c=document.getElementById('toasts'),t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3200);}
 
-  // STUBS
-  async function triggerBatch(){const u=document.getElementById('sheet-url').value.trim();toast(u?'Pipeline triggered.':'Please enter a Sheet URL.',u?'success':'error');}
+  async function triggerBatch(){
+    const u=document.getElementById('sheet-url').value.trim();
+    if(!u){toast('Please enter a Sheet URL.','error');return;}
+    toast('Triggering pipeline...','info');
+    try {
+      const r = await fetch('/description/trigger-batch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ sheet_url: u })
+      });
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.detail || 'Error');
+      toast(d.message || 'Pipeline triggered.', 'success');
+    } catch(e) { toast('Trigger failed: ' + e.message, 'error'); }
+  }
   async function generateDescription(){
     const ti=document.getElementById('product-title').value.trim(); if(!ti){toast('Please enter a product name.','error');return;}
     toast('Generating...','info');

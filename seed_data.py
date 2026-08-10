@@ -2,7 +2,7 @@ import asyncio
 import pandas as pd
 
 from app.db import SessionLocal, engine, Base
-from app.models import Product
+from app.models import Product, ProductChunk
 from app.config import get_settings
 from app.llm import embed
 from sqlalchemy import text
@@ -17,8 +17,8 @@ async def seed_data():
         await conn.run_sync(Base.metadata.create_all)
         # HNSW indeksi — Cosine Distance için optimize (1024 boyut)
         await conn.execute(text(
-            "CREATE INDEX IF NOT EXISTS product_embedding_hnsw "
-            "ON product USING hnsw (embedding vector_cosine_ops)"
+            "CREATE INDEX IF NOT EXISTS product_chunk_embedding_hnsw "
+            "ON product_chunk USING hnsw (embedding vector_cosine_ops)"
         ))
         print("✅ HNSW indeksi oluşturuldu.")
 
@@ -29,12 +29,20 @@ async def seed_data():
     print(f"Orijinal ürün sayısı: {len(products)}")
     products = products.dropna(subset=["asin", "title", "category_id"])
 
-    sample_size = min(10000, len(products))
-    products = products.sample(n=sample_size, random_state=42)
+    # Premium filtreler: Fiyatı 0'dan büyük, 4+ yıldızlı ve en az 50 yorumlu ürünler
+    products["price"] = pd.to_numeric(products["price"], errors="coerce").fillna(0.0)
+    products["stars"] = pd.to_numeric(products["stars"], errors="coerce").fillna(0.0)
+    products["reviews"] = pd.to_numeric(products["reviews"], errors="coerce").fillna(0)
+    
+    products = products[(products["price"] > 0) & (products["stars"] >= 4.0) & (products["reviews"] >= 50)]
+    print(f"Premium kriterleri sağlayan ürün sayısı: {len(products)}")
+
+    # En popüler 50.000 ürünü (yorum sayısına göre) seç
+    sample_size = min(50000, len(products))
+    products = products.sort_values(by="reviews", ascending=False).head(sample_size)
 
     df = pd.merge(products, categories, left_on="category_id", right_on="id", how="left")
     df["category_name"] = df["category_name"].fillna("Other")
-    df["price"] = df["price"].fillna(0.0)
 
     print(f"Toplam {len(df)} ürün vektörize edilecek.")
     print(f"Model yükleniyor: {settings.default_embed_model} (Bu işlem ilk seferde model indireceği için biraz sürebilir)...")
@@ -72,17 +80,23 @@ async def seed_data():
                 print(f"Embedding hatası (batch {start_idx}): {e}")
                 continue
 
-            products_to_insert = [
-                Product(
+            products_to_insert = []
+            for item, emb in zip(db_products, embeddings):
+                prod = Product(
                     sku=item["sku"],
                     title=item["title"],
-                    description=item["description"],
                     category=item["category"],
                     price_usd=item["price_usd"],
-                    embedding=emb,
                 )
-                for item, emb in zip(db_products, embeddings)
-            ]
+                chunk = ProductChunk(
+                    product=prod,
+                    chunk_type="metadata",
+                    chunk_index=0,
+                    content=item["description"],
+                    embedding=emb
+                )
+                products_to_insert.append(prod)
+                products_to_insert.append(chunk)
 
             session.add_all(products_to_insert)
             await session.commit()

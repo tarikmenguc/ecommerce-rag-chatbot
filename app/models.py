@@ -139,3 +139,37 @@ class BatchJob(Base):
         DateTime(timezone=True), onupdate=func.now(), nullable=True
     )
 
+
+class ShopifyJobStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    VISION_PROCESSING = "VISION"
+    TEXT_GENERATING = "TEXT_GEN"
+    AWAITING_APPROVAL = "APPROVAL"
+    SENDING = "SENDING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class ShopifyJob(Base):
+    __tablename__ = "shopify_job"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    batch_id: Mapped[str] = mapped_column(String(64), index=True)
+    shopify_product_id: Mapped[str] = mapped_column(String(128), index=True)
+    barcode: Mapped[str] = mapped_column(String(128), index=True)
+    original_title: Mapped[str] = mapped_column(String(512))
+    original_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    vision_analysis: Mapped[str | None] = mapped_column(Text, nullable=True)
+    generated_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[ShopifyJobStatus] = mapped_column(
+        Enum(ShopifyJobStatus, name="shopifyjobstatus"), default=ShopifyJobStatus.PENDING, index=True
+    )
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), index=True
+    )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), onupdate=func.now(), nullable=True
+    )
+

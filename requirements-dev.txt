@@ -1,0 +1,9 @@
+# --- Fine-Tuning / Dataset ---
+datasets==5.0.1
+scikit-learn==1.9.0
+beautifulsoup4==4.15.0
+
+# --- Dev / Test ---
+pytest==8.3.2
+pytest-asyncio==0.23.8
+ruff==0.6.3

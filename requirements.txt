@@ -29,15 +29,3 @@ httpx>=0.28.1
 slowapi==0.1.9
 markdown==3.10.2               # Batch worker: Markdown -> HTML donusumu
 
-# --- Fine-Tuning / Dataset ---
-datasets==5.0.1
-scikit-learn==1.9.0
-beautifulsoup4==4.15.0
-
-# --- Dev / Test ---
-pytest==8.3.2
-pytest-asyncio==0.23.8
-ruff==0.6.3
-ragas
-# langfuse kaldirildi: projenin hicbir yerinde import edilmiyor (grep dogrulamasi yapildi)
-

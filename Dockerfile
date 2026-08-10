@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --default-timeout=1000 -r requirements.txt
 
 COPY app ./app

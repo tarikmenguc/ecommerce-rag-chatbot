@@ -27,6 +27,15 @@ class Settings(BaseSettings):
     embed_dimensions: int = 1024
     ollama_base_url: str = "http://localhost:11434"
 
+    # Shopify API
+    shopify_store_domain: str | None = None
+    shopify_access_token: str | None = None
+    shopify_api_version: str = "2024-04"
+    shopify_rate_limit_per_min: int = 100  # REST Admin API limit
+
+    # Vision
+    ollama_vision_model: str = "llama3.2-vision"
+
     daily_cost_cap_usd: float = 0.50
     user_daily_cost_cap_usd: float = 0.10
     admin_api_key: str = "tarik-proje"

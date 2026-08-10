@@ -156,9 +156,9 @@
     </div>
     <div class="filter-bar" id="filter-bar">
       <button class="filter-tab active" onclick="setFilter('all')" id="tab-all">Tümü <span class="badge" id="badge-all">0</span></button>
-      <button class="filter-tab" onclick="setFilter('PENDING')" id="tab-PENDING">Bekliyor <span class="badge" id="badge-PENDING">0</span></button>
+      <button class="filter-tab" onclick="setFilter('PENDING')" id="tab-PENDING">Pending <span class="badge" id="badge-PENDING">0</span></button>
       <button class="filter-tab" onclick="setFilter('VISION')" id="tab-VISION">İşleniyor <span class="badge" id="badge-VISION">0</span></button>
-      <button class="filter-tab" onclick="setFilter('AWAITING_APPROVAL')" id="tab-AWAITING_APPROVAL">Onay Bekliyor <span class="badge" id="badge-AWAITING_APPROVAL">0</span></button>
+      <button class="filter-tab" onclick="setFilter('AWAITING_APPROVAL')" id="tab-AWAITING_APPROVAL">Onay Pending <span class="badge" id="badge-AWAITING_APPROVAL">0</span></button>
       <button class="filter-tab" onclick="setFilter('COMPLETED')" id="tab-COMPLETED">Tamamlandı <span class="badge" id="badge-COMPLETED">0</span></button>
       <button class="filter-tab" onclick="setFilter('FAILED')" id="tab-FAILED">Başarısız <span class="badge" id="badge-FAILED">0</span></button>
     </div>
@@ -184,7 +184,7 @@
           <div class="rp-section-label">Hızlı Düzenleme</div>
           <div class="quick-actions">
             <button class="qa-chip" onclick="quickRevise('Daha SEO odaklı yap')">SEO Odaklı</button>
-            <button class="qa-chip" onclick="quickRevise('Daha enerjik ve ikna edici yap')">Enerjik</button>
+            <button class="qa-chip" onclick="quickRevise('Daha More Energetic ve ikna edici yap')">More Energetic</button>
             <button class="qa-chip" onclick="quickRevise('Kısa ve öz hale getir')">Kısa & Öz</button>
             <button class="qa-chip" onclick="doRegenerate()">Baştan Yaz</button>
             <button class="qa-chip custom" onclick="toggleCustomReq()">Özel İstek</button>
@@ -194,7 +194,7 @@
             <textarea id="custom-req-input" class="custom-request-input" placeholder="Örn: Daha lüks bir dil kullan, 3 madde listesi ekle..."></textarea>
             <div class="custom-req-actions">
               <button class="btn-sm ghost" onclick="toggleCustomReq()">İptal</button>
-              <button class="btn-sm accent" onclick="submitCustomReq()">Uygula</button>
+              <button class="btn-sm accent" onclick="submitCustomReq()">Apply</button>
             </div>
           </div>
         </div>
@@ -289,7 +289,7 @@
     if(!visible.length) { empty.style.display='flex'; grid.style.display='none'; return; }
     empty.style.display='none'; grid.style.display='grid';
 
-    const bm = { PENDING:['badge-pending','Bekliyor'], VISION:['badge-vision','İşleniyor'], AWAITING_APPROVAL:['badge-approval','Onay Bekliyor'], COMPLETED:['badge-done','Tamamlandı'], FAILED:['badge-failed','Başarısız'] };
+    const bm = { PENDING:['badge-pending','Pending'], VISION:['badge-vision','İşleniyor'], AWAITING_APPROVAL:['badge-approval','Onay Pending'], COMPLETED:['badge-done','Tamamlandı'], FAILED:['badge-failed','Başarısız'] };
     visible.forEach(job => {
       const st = mapStatus(job.status), ia = (st==='AWAITING_APPROVAL'||st==='COMPLETED');
       const [bc, bl] = bm[st]||['badge-pending','—'];

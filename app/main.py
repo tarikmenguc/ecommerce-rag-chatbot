@@ -13,10 +13,11 @@ from app.config import get_settings
 from app.db import Base, engine
 from app.logger import CostCapExceeded  # Kendi özel hata sınıfımız
 from app.worker import queue_poller
+from app.shopify_worker import shopify_queue_poller
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
-from app.routers import admin, chat, health, search, description, agent_chat, webhook_trendyol
+from app.routers import admin, chat, health, search, description, agent_chat, webhook_trendyol, shopify, shopify_vision, mock_shopify
 
 settings = get_settings()
 logging.basicConfig(level=settings.log_level)
@@ -35,10 +36,15 @@ async def lifespan(_: FastAPI):
     poller_task = asyncio.create_task(queue_poller())
     log.info("✅ queue_poller arka planda başlatıldı.")
 
+    # Shopify Queue Poller
+    shopify_poller_task = asyncio.create_task(shopify_queue_poller())
+    log.info("✅ shopify_queue_poller arka planda başlatıldı.")
+
     yield
 
     # Kapatırken poller'ı durdur
     poller_task.cancel()
+    shopify_poller_task.cancel()
     await engine.dispose()
 
 
@@ -56,6 +62,9 @@ app.include_router(admin.router)
 app.include_router(description.router)
 app.include_router(agent_chat.router)
 app.include_router(webhook_trendyol.router)
+app.include_router(shopify.router)
+app.include_router(shopify_vision.router)
+app.include_router(mock_shopify.router)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

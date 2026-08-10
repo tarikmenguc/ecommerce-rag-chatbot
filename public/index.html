@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shopify AI Optimizer</title>
+  <meta name="description" content="Automatically generate and optimize Shopify product descriptions with AI." />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,32 +18,40 @@
     body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; display: flex; overflow: hidden; }
     ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
 
+    /* SIDEBAR */
     .sidebar { width: 68px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 1.25rem 0; gap: 0.5rem; z-index: 10; flex-shrink: 0; }
     .sidebar-logo { width: 36px; height: 36px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
     .sb-btn { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--muted); cursor: pointer; transition: all 0.15s; border: 1px solid transparent; position: relative; }
     .sb-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
     .sb-btn.active { color: var(--primary); background: var(--primary-glow); border-color: rgba(99,102,241,0.35); }
+    .sb-btn[data-tip]::after { content: attr(data-tip); position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%); background: #1e293b; color: var(--text); font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 6px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.15s; border: 1px solid var(--border); }
+    .sb-btn:hover[data-tip]::after { opacity: 1; }
 
+    /* LAYOUT */
     .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
     .module { display: none; flex: 1; overflow: hidden; }
     .module.active { display: flex; flex-direction: column; }
 
+    /* HEADER */
     .page-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-    .page-header h1 { font-size: 1.05rem; font-weight: 600; }
+    .page-header h1 { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
     .page-header p  { font-size: 0.75rem; color: var(--muted-2); margin-top: 2px; }
     .header-actions { display: flex; align-items: center; gap: 0.65rem; }
     .btn-primary { background: var(--primary); color: #fff; border: none; padding: 0.5rem 1.1rem; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.15s, transform 0.15s; }
     .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-ghost { background: transparent; color: var(--muted-2); border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
 
+    /* FILTER */
     .filter-bar { display: flex; align-items: center; gap: 0.35rem; padding: 0.9rem 2rem; border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
     .filter-tab { padding: 5px 14px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--muted-2); font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
     .filter-tab:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
     .filter-tab.active { color: var(--text); background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
     .filter-tab .badge { background: rgba(255,255,255,0.12); padding: 1px 7px; border-radius: 99px; font-size: 0.7rem; }
 
+    /* GRID */
     .product-grid-wrap { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-
     .p-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
     .p-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.14); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
     .p-card.selected { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
@@ -55,7 +64,6 @@
     .badge-approval { background: rgba(245,158,11,0.2);   color: #fcd34d; border: 1px solid rgba(245,158,11,0.35); }
     .badge-done     { background: rgba(16,185,129,0.2);   color: #6ee7b7; border: 1px solid rgba(16,185,129,0.35); }
     .badge-failed   { background: rgba(239,68,68,0.2);    color: #fca5a5; border: 1px solid rgba(239,68,68,0.35); }
-
     .p-card-body { padding: 0.9rem 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
     .p-card-title { font-size: 0.88rem; font-weight: 600; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .p-card-meta  { font-size: 0.72rem; color: var(--muted-2); }
@@ -69,6 +77,7 @@
     .empty-state h3 { font-size: 0.95rem; font-weight: 600; color: var(--muted-2); }
     .empty-state p  { font-size: 0.8rem; max-width: 260px; line-height: 1.5; }
 
+    /* RIGHT PANEL */
     .right-panel { width: 420px; flex-shrink: 0; background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); position: absolute; right: 0; top: 0; bottom: 0; z-index: 30; box-shadow: -10px 0 30px rgba(0,0,0,0.4); }
     .right-panel.open { transform: translateX(0); }
     .rp-header { padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
@@ -78,7 +87,7 @@
     .rp-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; }
     .rp-ctx { display: flex; gap: 0.9rem; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem; }
     .rp-ctx-img { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; background: #1e293b; flex-shrink: 0; }
-    .rp-ctx-name { font-size: 0.88rem; font-weight: 600; }
+    .rp-ctx-name { font-size: 0.88rem; font-weight: 600; line-height: 1.35; }
     .rp-ctx-sub  { font-size: 0.72rem; color: var(--muted-2); margin-top: 3px; }
     .rp-section-label { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; display: flex; align-items: center; justify-content: space-between; }
     .unsaved-pill { background: rgba(245,158,11,0.15); color: var(--warning); font-size: 0.65rem; padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(245,158,11,0.3); display: none; }
@@ -90,10 +99,12 @@
     .qa-chip:hover { color: var(--text); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
     .qa-chip.custom { border-color: rgba(99,102,241,0.4); color: #a5b4fc; background: var(--primary-glow); }
     .qa-chip.custom:hover { background: rgba(99,102,241,0.25); }
-    .custom-request-box { background: var(--surface-2); border: 1px solid rgba(99,102,241,0.3); border-radius: var(--radius-sm); padding: 0.9rem; display: none; flex-direction: column; gap: 0.65rem; }
+    .custom-request-box { background: var(--surface-2); border: 1px solid rgba(99,102,241,0.3); border-radius: var(--radius-sm); padding: 0.9rem; display: none; flex-direction: column; gap: 0.65rem; animation: slideDown 0.2s ease; }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
     .custom-request-box.open { display: flex; }
-    .custom-request-label { font-size: 0.72rem; font-weight: 600; color: #a5b4fc; }
+    .custom-request-label { font-size: 0.72rem; font-weight: 600; color: #a5b4fc; display: flex; align-items: center; gap: 5px; }
     .custom-request-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(99,102,241,0.25); border-radius: 6px; padding: 0.6rem 0.8rem; color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; resize: none; min-height: 72px; line-height: 1.5; }
+    .custom-request-input::placeholder { color: var(--muted); }
     .custom-req-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
     .btn-sm { padding: 5px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
     .btn-sm.ghost { background: rgba(255,255,255,0.06); color: var(--muted-2); }
@@ -101,148 +112,359 @@
     .btn-sm.accent { background: var(--primary); color: #fff; }
     .rp-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); flex-shrink: 0; }
     .btn-approve { width: 100%; padding: 0.85rem; background: var(--success); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.15s; }
-    .btn-approve:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-approve:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.25); }
     .btn-approve:disabled { opacity: 0.5; cursor: wait; transform: none; }
 
-    .floating-chat { position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 50; transition: right 0.28s; }
+    /* CHAT */
+    .floating-chat { position: fixed; bottom: 1.75rem; right: 1.75rem; z-index: 50; transition: right 0.28s cubic-bezier(0.4,0,0.2,1); }
     .floating-chat.shifted { right: 436px; }
     .chat-trigger { width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 16px rgba(99,102,241,0.4); transition: transform 0.2s; }
     .chat-trigger:hover { transform: translateY(-3px); }
-    .chat-window { position: absolute; bottom: 66px; right: 0; width: 340px; height: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; display: none; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+    .chat-window { position: absolute; bottom: 66px; right: 0; width: 340px; height: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; display: none; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.5); animation: fadeUp 0.22s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     .cw-header { padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
     .cw-body { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.65rem; }
     .cb { padding: 0.65rem 0.85rem; border-radius: 10px; max-width: 82%; font-size: 0.82rem; line-height: 1.45; }
-    .cb.user { background: var(--primary); color: #fff; align-self: flex-end; }
-    .cb.ai   { background: var(--surface-2); color: var(--text); align-self: flex-start; border: 1px solid var(--border); }
+    .cb.user { background: var(--primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
+    .cb.ai   { background: var(--surface-2); color: var(--text); align-self: flex-start; border-bottom-left-radius: 3px; border: 1px solid var(--border); }
     .cw-footer { padding: 0.75rem; border-top: 1px solid var(--border); display: flex; gap: 0.5rem; }
     .cw-input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.75rem; color: var(--text); font-family: inherit; font-size: 0.82rem; outline: none; }
+    .cw-input:focus { border-color: rgba(99,102,241,0.5); }
     .cw-send { background: var(--primary); color: #fff; border: none; border-radius: 8px; width: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
+    /* TOAST */
     .toasts { position: fixed; top: 1.5rem; right: 1.75rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; }
-    .toast { padding: 0.75rem 1.1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .toast { padding: 0.75rem 1.1rem; border-radius: 8px; font-size: 0.82rem; font-weight: 500; color: #fff; animation: slideIn 0.25s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:none;opacity:1} }
     .toast.success { background: var(--success); }
     .toast.error   { background: var(--error); }
     .toast.info    { background: var(--primary); }
 
+    /* BATCH/MANUAL */
     .basic-wrap { flex:1; overflow-y:auto; padding: 2rem; display: flex; flex-direction: column; gap: 1rem; max-width: 700px; }
     .basic-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 0.9rem; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.85rem; outline: none; }
+    .basic-input:focus { border-color: rgba(99,102,241,0.5); }
     .label-sm { font-size: 0.75rem; font-weight: 600; color: var(--muted-2); margin-bottom: 0.3rem; }
+
+    /* HELP / DOCS */
+    .help-wrap { flex: 1; overflow-y: auto; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; max-width: 820px; }
+    .help-section-title { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.9rem; }
+    .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; position: relative; overflow: hidden; }
+    .step-card::before { content: attr(data-num); position: absolute; top: -6px; right: 10px; font-size: 3.5rem; font-weight: 800; color: rgba(255,255,255,0.03); line-height: 1; pointer-events: none; }
+    .step-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-card h3 { font-size: 0.88rem; font-weight: 700; }
+    .step-card p  { font-size: 0.8rem; color: var(--muted-2); line-height: 1.55; }
+    .faq-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+    .faq-q { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.1rem; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: background 0.15s; gap: 0.5rem; user-select: none; }
+    .faq-q:hover { background: rgba(255,255,255,0.03); }
+    .faq-chevron { flex-shrink: 0; transition: transform 0.25s; color: var(--muted); }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-a { display: none; padding: 0 1.1rem 1rem; font-size: 0.82rem; color: var(--muted-2); line-height: 1.65; border-top: 1px solid var(--border); padding-top: 0.85rem; }
+    .faq-item.open .faq-a { display: block; }
+    .faq-a code { background: rgba(99,102,241,0.15); color: #a5b4fc; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; font-family: monospace; }
+
+    /* ONBOARDING TOUR */
+    .tour-overlay { position: fixed; inset: 0; z-index: 9000; pointer-events: none; }
+    .tour-backdrop { position: fixed; inset: 0; background: rgba(7,10,20,0.82); pointer-events: all; }
+    .tour-spotlight { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(7,10,20,0.82); border: 2px solid var(--primary); z-index: 9001; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); pointer-events: none; }
+    .tour-popup { position: fixed; z-index: 9002; width: 320px; background: var(--surface); border: 1px solid rgba(99,102,241,0.4); border-radius: 14px; padding: 1.25rem; box-shadow: 0 16px 40px rgba(0,0,0,0.6); pointer-events: all; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); }
+    .tour-step-num { font-size: 0.68rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+    .tour-step-num::before { content:''; display:inline-block; width:18px; height:3px; background:var(--primary); border-radius:99px; }
+    .tour-popup h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.45rem; }
+    .tour-popup p  { font-size: 0.82rem; color: var(--muted-2); line-height: 1.55; }
+    .tour-actions  { display: flex; align-items: center; justify-content: space-between; margin-top: 1.1rem; }
+    .tour-dots     { display: flex; gap: 5px; }
+    .tour-dot      { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: all 0.2s; }
+    .tour-dot.active { background: var(--primary); width: 18px; border-radius: 3px; }
+    .tour-btn-row  { display: flex; gap: 0.5rem; }
+    .btn-tour-skip { padding: 5px 12px; background: transparent; border: 1px solid var(--border); color: var(--muted-2); border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+    .btn-tour-skip:hover { color: var(--text); }
+    .btn-tour-next { padding: 5px 16px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .btn-tour-next:hover { opacity: 0.88; }
+    .tour-hidden { display: none !important; }
   </style>
 </head>
 <body>
 
+<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.29 3.43A2 2 0 0 0 6.4 20h11.2M10 20a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
   </div>
-  <div class="sb-btn active" id="nav-optimizer" onclick="switchTab('optimizer')" title="Optimizer">
+  <div class="sb-btn active" id="nav-optimizer" data-tip="Optimizer" onclick="switchTab('optimizer')">
     <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
   </div>
-  <div class="sb-btn" id="nav-batch" onclick="switchTab('batch')" title="Batch Pipeline">
+  <div class="sb-btn" id="nav-batch" data-tip="Batch Pipeline" onclick="switchTab('batch')">
     <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
   </div>
-  <div class="sb-btn" id="nav-manual" onclick="switchTab('manual')" title="Copy Generator">
+  <div class="sb-btn" id="nav-manual" data-tip="Copy Generator" onclick="switchTab('manual')">
     <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+  </div>
+  <div style="width:28px;height:1px;background:var(--border);margin:0.5rem 0;"></div>
+  <div class="sb-btn" id="nav-help" data-tip="Help &amp; Docs" onclick="switchTab('help')">
+    <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
   </div>
 </aside>
 
+<!-- MAIN -->
 <main class="main-area">
+
+  <!-- OPTIMIZER -->
   <div id="module-optimizer" class="module active">
-    <div class="page-header">
-      <div><h1>Shopify AI Optimizer</h1><p>Yapay zeka ile ürün açıklamalarını otomatik oluştur</p></div>
+    <div class="page-header" id="hdr-optimizer">
+      <div>
+        <h1>Shopify AI Optimizer</h1>
+        <p>Automatically generate and review AI-written product descriptions</p>
+      </div>
       <div class="header-actions">
-        <button class="btn-primary" id="btn-connect" onclick="connectShopify()">Shopify Bağlan</button>
+        <button class="btn-ghost" onclick="startTour()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          How it works
+        </button>
+        <button class="btn-primary" id="btn-connect" onclick="connectShopify()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          Connect Shopify
+        </button>
       </div>
     </div>
     <div class="filter-bar" id="filter-bar">
-      <button class="filter-tab active" onclick="setFilter('all')" id="tab-all">Tümü <span class="badge" id="badge-all">0</span></button>
+      <button class="filter-tab active" onclick="setFilter('all')" id="tab-all">All <span class="badge" id="badge-all">0</span></button>
       <button class="filter-tab" onclick="setFilter('PENDING')" id="tab-PENDING">Pending <span class="badge" id="badge-PENDING">0</span></button>
-      <button class="filter-tab" onclick="setFilter('VISION')" id="tab-VISION">İşleniyor <span class="badge" id="badge-VISION">0</span></button>
-      <button class="filter-tab" onclick="setFilter('AWAITING_APPROVAL')" id="tab-AWAITING_APPROVAL">Onay Pending <span class="badge" id="badge-AWAITING_APPROVAL">0</span></button>
-      <button class="filter-tab" onclick="setFilter('COMPLETED')" id="tab-COMPLETED">Tamamlandı <span class="badge" id="badge-COMPLETED">0</span></button>
-      <button class="filter-tab" onclick="setFilter('FAILED')" id="tab-FAILED">Başarısız <span class="badge" id="badge-FAILED">0</span></button>
+      <button class="filter-tab" onclick="setFilter('VISION')" id="tab-VISION">Processing <span class="badge" id="badge-VISION">0</span></button>
+      <button class="filter-tab" onclick="setFilter('AWAITING_APPROVAL')" id="tab-AWAITING_APPROVAL">Needs Review <span class="badge" id="badge-AWAITING_APPROVAL">0</span></button>
+      <button class="filter-tab" onclick="setFilter('COMPLETED')" id="tab-COMPLETED">Done <span class="badge" id="badge-COMPLETED">0</span></button>
+      <button class="filter-tab" onclick="setFilter('FAILED')" id="tab-FAILED">Failed <span class="badge" id="badge-FAILED">0</span></button>
     </div>
     <div class="product-grid-wrap" id="grid-wrap">
       <div class="empty-state" id="empty-state">
         <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="opacity:0.3"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.29 3.43A2 2 0 0 0 6.4 20h11.2M10 20a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
-        <h3>Henüz ürün yok</h3>
-        <p>Shopify mağazanıza bağlanarak ürünleri listelemeye başlayın.</p>
-        <button class="btn-primary" onclick="connectShopify()" style="margin-top:0.5rem;">Bağlan</button>
+        <h3>No products yet</h3>
+        <p>Connect your Shopify store to start listing and optimizing products.</p>
+        <button class="btn-primary" onclick="connectShopify()" style="margin-top:0.5rem;">Connect Shopify</button>
       </div>
       <div class="product-grid" id="product-grid"></div>
     </div>
+    <!-- RIGHT PANEL -->
     <aside class="right-panel" id="right-panel">
-      <div class="rp-header"><span class="rp-title">İnteraktif Editör</span><button class="rp-close" onclick="closePanel()">&times;</button></div>
+      <div class="rp-header"><span class="rp-title">Interactive Editor</span><button class="rp-close" onclick="closePanel()">&times;</button></div>
       <div class="rp-body">
         <div class="rp-ctx"><img id="rp-img" class="rp-ctx-img" src="" alt="" onerror="this.style.display='none'" /><div><div class="rp-ctx-name" id="rp-name">—</div><div class="rp-ctx-sub" id="rp-sub">—</div></div></div>
         <input type="hidden" id="rp-job-id" />
         <div style="display:flex;flex-direction:column;gap:0.5rem;">
-          <div class="rp-section-label">Yapay Zeka Satış Metni<span class="unsaved-pill" id="unsaved-pill">Kaydedilmedi</span></div>
-          <textarea id="rp-text" class="editor-textarea" oninput="onTextEdit()" placeholder="Metin burada..."></textarea>
+          <div class="rp-section-label">AI Sales Copy <span class="unsaved-pill" id="unsaved-pill">Unsaved changes</span></div>
+          <textarea id="rp-text" class="editor-textarea" oninput="onTextEdit()" placeholder="AI-generated copy will appear here..."></textarea>
         </div>
-        <div style="display:flex;flex-direction:column;gap:0.6rem;">
-          <div class="rp-section-label">Hızlı Düzenleme</div>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;" id="quick-actions-section">
+          <div class="rp-section-label">Quick Revisions</div>
           <div class="quick-actions">
-            <button class="qa-chip" onclick="quickRevise('Daha SEO odaklı yap')">SEO Odaklı</button>
-            <button class="qa-chip" onclick="quickRevise('Daha More Energetic ve ikna edici yap')">More Energetic</button>
-            <button class="qa-chip" onclick="quickRevise('Kısa ve öz hale getir')">Kısa & Öz</button>
-            <button class="qa-chip" onclick="doRegenerate()">Baştan Yaz</button>
-            <button class="qa-chip custom" onclick="toggleCustomReq()">Özel İstek</button>
+            <button class="qa-chip" onclick="quickRevise('Make it more SEO-friendly with rich keywords and search-optimized phrases')">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              SEO-Focused
+            </button>
+            <button class="qa-chip" onclick="quickRevise('Rewrite in an energetic, exciting and highly persuasive tone')">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              More Energetic
+            </button>
+            <button class="qa-chip" onclick="quickRevise('Make it concise, punchy and to the point')">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
+              Short &amp; Sharp
+            </button>
+            <button class="qa-chip" onclick="doRegenerate()">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Regenerate
+            </button>
+            <button class="qa-chip custom" onclick="toggleCustomReq()">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Custom Request
+            </button>
           </div>
           <div class="custom-request-box" id="custom-req-box">
-            <div class="custom-request-label">Özel düzeltme isteğinizi yazın</div>
-            <textarea id="custom-req-input" class="custom-request-input" placeholder="Örn: Daha lüks bir dil kullan, 3 madde listesi ekle..."></textarea>
+            <div class="custom-request-label">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Describe what you'd like changed
+            </div>
+            <textarea id="custom-req-input" class="custom-request-input" placeholder="e.g. Rewrite in a luxury tone, emphasize the warranty, and add a bullet list of 3 key features..."></textarea>
             <div class="custom-req-actions">
-              <button class="btn-sm ghost" onclick="toggleCustomReq()">İptal</button>
+              <button class="btn-sm ghost" onclick="toggleCustomReq()">Cancel</button>
               <button class="btn-sm accent" onclick="submitCustomReq()">Apply</button>
             </div>
           </div>
         </div>
       </div>
-      <div class="rp-footer"><button class="btn-approve" id="btn-approve" onclick="doApprove()">Onayla ve Shopify'a Gönder</button></div>
+      <div class="rp-footer">
+        <button class="btn-approve" id="btn-approve" onclick="doApprove()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Approve &amp; Push to Shopify
+        </button>
+      </div>
     </aside>
   </div>
 
+  <!-- BATCH -->
   <div id="module-batch" class="module">
-    <div class="page-header"><div><h1>Batch Pipeline</h1><p>n8n + Google Sheets ile toplu işlem</p></div></div>
+    <div class="page-header"><div><h1>Batch Pipeline</h1><p>Bulk-process entire catalogs via n8n + Google Sheets</p></div></div>
     <div class="basic-wrap">
       <div><div class="label-sm">Google Sheets URL</div><input id="sheet-url" class="basic-input" type="text" placeholder="https://docs.google.com/spreadsheets/d/..." /></div>
-      <button class="btn-primary" style="width:fit-content;" onclick="triggerBatch()">Pipeline Başlat</button>
+      <button class="btn-primary" style="width:fit-content;" onclick="triggerBatch()">Start Pipeline</button>
     </div>
   </div>
 
+  <!-- COPY GENERATOR -->
   <div id="module-manual" class="module">
-    <div class="page-header"><div><h1>Açıklama Üretici</h1><p>Fine-tuned Llama-3 ile ürün açıklaması</p></div></div>
+    <div class="page-header"><div><h1>Copy Generator</h1><p>Generate product descriptions with fine-tuned Llama-3</p></div></div>
     <div class="basic-wrap">
-      <div><div class="label-sm">Ürün Adı</div><input id="product-title" class="basic-input" type="text" placeholder="Ürün adı..." /></div>
-      <div><div class="label-sm">Özellikler</div><textarea id="product-features" class="basic-input" style="min-height:100px;resize:vertical;" placeholder="- Özellik 1"></textarea></div>
-      <div><div class="label-sm">Ton</div>
+      <div><div class="label-sm">Product Name</div><input id="product-title" class="basic-input" type="text" placeholder="Enter product name..." /></div>
+      <div><div class="label-sm">Key Features</div><textarea id="product-features" class="basic-input" style="min-height:100px;resize:vertical;" placeholder="- Feature 1&#10;- Feature 2"></textarea></div>
+      <div><div class="label-sm">Writing Tone</div>
         <select id="tone-select" class="basic-input">
-          <option value="compelling">İkna Edici</option><option value="professional">Profesyonel</option><option value="casual">Samimi</option><option value="luxury">Lüks</option>
+          <option value="compelling">Compelling &amp; Persuasive</option>
+          <option value="professional">Professional</option>
+          <option value="casual">Casual &amp; Friendly</option>
+          <option value="luxury">Luxury &amp; Premium</option>
         </select>
       </div>
-      <button class="btn-primary" style="width:fit-content;" onclick="generateDescription()">Oluştur</button>
+      <button class="btn-primary" style="width:fit-content;" onclick="generateDescription()">Generate Description</button>
       <div id="gen-output" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;font-size:0.83rem;line-height:1.65;white-space:pre-wrap;"></div>
     </div>
   </div>
+
+  <!-- HELP & DOCS -->
+  <div id="module-help" class="module">
+    <div class="page-header">
+      <div><h1>Help &amp; Documentation</h1><p>Learn how to get the most out of Shopify AI Optimizer</p></div>
+      <button class="btn-ghost" onclick="startTour()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Replay Tour
+      </button>
+    </div>
+    <div class="help-wrap">
+      <div>
+        <div class="help-section-title">How to Use — Quick Start Guide</div>
+        <div class="steps-grid">
+          <div class="step-card" data-num="01">
+            <div class="step-icon" style="background:rgba(99,102,241,0.15);color:#a5b4fc;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <h3>Connect Your Store</h3>
+            <p>Click <strong>Connect Shopify</strong> on the Optimizer page. The system fetches all products and identifies which ones need better descriptions.</p>
+          </div>
+          <div class="step-card" data-num="02">
+            <div class="step-icon" style="background:rgba(6,182,212,0.15);color:#67e8f9;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3>Wait for AI Processing</h3>
+            <p>Products are automatically queued. Vision AI reads the product image, then Llama-3 generates persuasive copy. No manual steps needed.</p>
+          </div>
+          <div class="step-card" data-num="03">
+            <div class="step-icon" style="background:rgba(245,158,11,0.15);color:#fcd34d;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <h3>Review &amp; Edit</h3>
+            <p>Filter by <strong>Needs Review</strong>. Click any card to open the Interactive Editor. Use quick chips or write a Custom Request to refine the copy.</p>
+          </div>
+          <div class="step-card" data-num="04">
+            <div class="step-icon" style="background:rgba(16,185,129,0.15);color:#6ee7b7;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3>Approve &amp; Push</h3>
+            <p>When satisfied, click <strong>Approve &amp; Push to Shopify</strong>. The updated description goes live on your store automatically via the Shopify API.</p>
+          </div>
+          <div class="step-card" data-num="05">
+            <div class="step-icon" style="background:rgba(99,102,241,0.15);color:#a5b4fc;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            <h3>Batch Processing</h3>
+            <p>Have hundreds of products? Use the <strong>Batch Pipeline</strong> tab. Paste a Google Sheets URL and the n8n workflow processes everything automatically.</p>
+          </div>
+          <div class="step-card" data-num="06">
+            <div class="step-icon" style="background:rgba(6,182,212,0.15);color:#67e8f9;">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <h3>AI Sales Assistant</h3>
+            <p>The chat button (bottom-right) opens your AI assistant. It's context-aware — when a product is open, it gives tailored advice for that specific product.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="help-section-title">Frequently Asked Questions</div>
+        <div class="faq-list">
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">How does the AI generate descriptions? <svg class="faq-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="faq-a">The system uses a two-step pipeline. First, a <strong>Vision AI model</strong> analyzes the product image to detect colors, style, and visual features. Then a <strong>fine-tuned Llama-3</strong> model generates a persuasive sales description. Everything runs locally — no cloud API costs.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What does each product status mean? <svg class="faq-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="faq-a"><strong>Pending</strong> — Found, waiting for processing.<br/><br/><strong>Processing</strong> — Vision AI + Llama-3 are working.<br/><br/><strong>Needs Review</strong> — Copy ready. Click to review &amp; approve.<br/><br/><strong>Done</strong> — Approved and live on your store.<br/><br/><strong>Failed</strong> — An error occurred. Check the card for details and retry.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Can I edit the AI-generated text before publishing? <svg class="faq-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="faq-a">Yes. The text area in the Interactive Editor is fully editable. You can also use the quick-revision chips (SEO-Focused, More Energetic, etc.) or write a completely custom instruction using the <code>Custom Request</code> button. The AI will rewrite based on your exact instruction.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What is the Batch Pipeline and when should I use it? <svg class="faq-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="faq-a">The Batch Pipeline is for large catalogs. Put your product list in a Google Sheet, paste the URL, and an n8n workflow reads each row, sends it through Llama-3, and writes the copy back automatically. It's fully async — you can close your browser and check results later.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">How do I use the Custom Request feature? <svg class="faq-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="faq-a">Open a product in the editor, click the <code>Custom Request</code> chip, and write your instruction in plain English — e.g. <em>"Rewrite in a luxury tone, add 3 bullet points for key features, and include a call-to-action."</em> Click Apply and the AI follows your instructions precisely.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Does approving a product immediately update my live store? <svg class="faq-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="faq-a">Yes. Clicking <strong>Approve &amp; Push to Shopify</strong> calls the Shopify API and updates the product description in real-time. Changes are live within seconds. Ensure your Shopify credentials are correctly set in the backend environment variables.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What if a product fails processing? <svg class="faq-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+            <div class="faq-a">Failed products show an error message on the card. Common causes: missing product image (Vision AI needs one), Shopify API rate limits, or the model server being unavailable. Open the editor and click <code>Regenerate</code> to re-queue the product.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
+<!-- FLOATING CHAT -->
 <div class="floating-chat" id="floating-chat">
   <div class="chat-trigger" onclick="toggleChat()" id="chat-trigger">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   </div>
   <div class="chat-window" id="chat-win">
-    <div class="cw-header">AI Satış Asistanı<button onclick="toggleChat()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;">&times;</button></div>
-    <div class="cw-body" id="cw-body"><div class="cb ai">Merhaba! Ürünleriniz hakkında bir şeyler sorun.</div></div>
-    <div class="cw-footer"><input class="cw-input" id="cw-input" placeholder="Mesajınız..." onkeypress="if(event.key==='Enter') sendChat()" /><button class="cw-send" onclick="sendChat()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>
+    <div class="cw-header">AI Sales Assistant <button onclick="toggleChat()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;">&times;</button></div>
+    <div class="cw-body" id="cw-body"><div class="cb ai">Hi! I'm your AI sales assistant. Ask me anything about your products or e-commerce strategy.</div></div>
+    <div class="cw-footer">
+      <input class="cw-input" id="cw-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()" />
+      <button class="cw-send" onclick="sendChat()"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- TOUR OVERLAY -->
+<div class="tour-overlay tour-hidden" id="tour-overlay">
+  <div class="tour-backdrop" id="tour-backdrop" onclick="endTour()"></div>
+  <div class="tour-spotlight" id="tour-spotlight"></div>
+  <div class="tour-popup" id="tour-popup">
+    <div class="tour-step-num" id="tour-step-label">Step 1 of 6</div>
+    <h3 id="tour-title">Welcome</h3>
+    <p id="tour-desc"></p>
+    <div class="tour-actions">
+      <div class="tour-dots" id="tour-dots"></div>
+      <div class="tour-btn-row">
+        <button class="btn-tour-skip" onclick="endTour()">Skip tour</button>
+        <button class="btn-tour-next" id="btn-tour-next" onclick="nextStep()">Next →</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="toasts" id="toasts"></div>
 
 <script>
+  // STATE
   let productsArray = [], activeFilter = 'all', selectedId = null;
 
+  // TAB
   function switchTab(id) {
     document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
     document.querySelectorAll('.sb-btn').forEach(b => b.classList.remove('active'));
@@ -250,15 +472,16 @@
     document.getElementById('nav-' + id).classList.add('active');
   }
 
+  // SHOPIFY
   async function connectShopify() {
     const btn = document.getElementById('btn-connect');
-    btn.disabled = true; btn.textContent = 'Bağlanıyor...';
+    btn.disabled = true; btn.textContent = 'Connecting...';
     try {
       const r = await fetch('/shopify/connect'); const d = await r.json();
       if(!r.ok) throw new Error(d.detail);
-      toast(`${d.total_products} ürün bulundu.`, 'success'); await fetchJobs();
-    } catch(e) { toast('Hata: ' + e.message, 'error'); }
-    finally { btn.disabled = false; btn.textContent = 'Shopify Bağlan'; }
+      toast(`${d.total_products} products found.`, 'success'); await fetchJobs();
+    } catch(e) { toast('Error: ' + e.message, 'error'); }
+    finally { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Connect Shopify'; }
   }
 
   async function fetchJobs() {
@@ -274,29 +497,29 @@
   function setFilter(f) {
     activeFilter = f;
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    (document.getElementById('tab-' + f) || document.getElementById('tab-all')).classList.add('active');
+    (document.getElementById('tab-'+f)||document.getElementById('tab-all')).classList.add('active');
     renderGrid();
   }
 
   function renderGrid() {
     const grid = document.getElementById('product-grid'), empty = document.getElementById('empty-state');
     const counts = { all: productsArray.length, PENDING:0, VISION:0, AWAITING_APPROVAL:0, COMPLETED:0, FAILED:0 };
-    productsArray.forEach(j => { const s = mapStatus(j.status); if(counts[s]!==undefined) counts[s]++; });
-    Object.entries(counts).forEach(([k,v]) => { const el = document.getElementById('badge-'+k); if(el) el.textContent = v; });
-
-    const visible = activeFilter==='all' ? productsArray : productsArray.filter(j => mapStatus(j.status)===activeFilter);
+    productsArray.forEach(j => { const s=mapStatus(j.status); if(counts[s]!==undefined) counts[s]++; });
+    Object.entries(counts).forEach(([k,v]) => { const el=document.getElementById('badge-'+k); if(el) el.textContent=v; });
+    const visible = activeFilter==='all' ? productsArray : productsArray.filter(j=>mapStatus(j.status)===activeFilter);
     grid.innerHTML = '';
     if(!visible.length) { empty.style.display='flex'; grid.style.display='none'; return; }
     empty.style.display='none'; grid.style.display='grid';
-
-    const bm = { PENDING:['badge-pending','Pending'], VISION:['badge-vision','İşleniyor'], AWAITING_APPROVAL:['badge-approval','Onay Pending'], COMPLETED:['badge-done','Tamamlandı'], FAILED:['badge-failed','Başarısız'] };
+    const bm = { PENDING:['badge-pending','Pending'], VISION:['badge-vision','Processing'], AWAITING_APPROVAL:['badge-approval','Needs Review'], COMPLETED:['badge-done','Done'], FAILED:['badge-failed','Failed'] };
     visible.forEach(job => {
-      const st = mapStatus(job.status), ia = (st==='AWAITING_APPROVAL'||st==='COMPLETED');
-      const [bc, bl] = bm[st]||['badge-pending','—'];
+      const st=mapStatus(job.status), ia=(st==='AWAITING_APPROVAL'||st==='COMPLETED');
+      const [bc,bl]=bm[st]||['badge-pending','—'];
       let ex='', ft='';
-      if(st==='VISION') ex=`<div class="p-card-progress"><div class="dot"></div>İşleniyor...</div>`;
-      if(st==='AWAITING_APPROVAL') ft=`<div class="p-card-footer"><span></span><span class="p-card-action">İncele &amp; Düzenle →</span></div>`;
-      else if(st==='COMPLETED') ft=`<div class="p-card-footer"><span></span><span class="p-card-action" style="color:var(--success)">Tamamlandı ✓</span></div>`;
+      if(st==='VISION') ex=`<div class="p-card-progress"><div class="dot"></div>AI is working...</div>`;
+      else if(st==='FAILED'&&job.error_message) ex=`<div style="font-size:0.7rem;color:var(--error);margin-top:4px;">${job.error_message}</div>`;
+      if(st==='AWAITING_APPROVAL') ft=`<div class="p-card-footer"><span></span><span class="p-card-action">Review &amp; Edit →</span></div>`;
+      else if(st==='COMPLETED') ft=`<div class="p-card-footer"><span></span><span class="p-card-action" style="color:var(--success)">Done ✓</span></div>`;
+      else if(st==='FAILED') ft=`<div class="p-card-footer"><span></span><span class="p-card-action" style="color:var(--error)">Failed</span></div>`;
       const card = document.createElement('div');
       card.className = `p-card ${selectedId===job.id?'selected':''}`;
       card.dataset.id = job.id;
@@ -306,26 +529,28 @@
           ${job.image_url?`<img class="p-card-img" src="${job.image_url}" onerror="this.style.display='none'">`:`<div class="p-card-img-placeholder"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
           <span class="p-card-status-badge ${bc}">${bl}</span>
         </div>
-        <div class="p-card-body"><div class="p-card-title">${job.original_title}</div><div class="p-card-meta">Barkod: ${job.barcode||'Yok'}</div>${ex}</div>
+        <div class="p-card-body"><div class="p-card-title">${job.original_title}</div><div class="p-card-meta">Barcode: ${job.barcode||'N/A'} &nbsp;&middot;&nbsp; ID: ${job.id}</div>${ex}</div>
         ${ft}`;
       grid.appendChild(card);
     });
   }
 
   function openPanel(jobId) {
-    const job = productsArray.find(j => j.id===jobId); if(!job) return;
+    const job = productsArray.find(j=>j.id===jobId); if(!job) return;
     selectedId = jobId;
     document.getElementById('rp-job-id').value = jobId;
     document.getElementById('rp-name').textContent = job.original_title;
-    document.getElementById('rp-sub').textContent = 'Barkod: '+(job.barcode||'Yok');
+    document.getElementById('rp-sub').textContent = 'Barcode: '+(job.barcode||'N/A');
     document.getElementById('rp-text').value = job.generated_description||'';
-    document.getElementById('unsaved-pill').style.display='none';
-    const img = document.getElementById('rp-img');
+    document.getElementById('unsaved-pill').style.display = 'none';
+    const img=document.getElementById('rp-img');
     if(job.image_url){img.src=job.image_url;img.style.display='block';}else img.style.display='none';
     document.getElementById('custom-req-box').classList.remove('open');
+    document.getElementById('custom-req-input').value='';
     document.getElementById('right-panel').classList.add('open');
     document.getElementById('floating-chat').classList.add('shifted');
     document.querySelectorAll('.p-card').forEach(c=>c.classList.toggle('selected',parseInt(c.dataset.id)===jobId));
+    appendChat('ai',`I can help you craft better copy for "${job.original_title}". What would you like to improve?`);
   }
 
   function closePanel() {
@@ -335,28 +560,106 @@
   }
   function onTextEdit() { document.getElementById('unsaved-pill').style.display='inline-flex'; }
   function toggleCustomReq() { const b=document.getElementById('custom-req-box'); b.classList.toggle('open'); if(b.classList.contains('open')) document.getElementById('custom-req-input').focus(); }
-  async function submitCustomReq() { const p=document.getElementById('custom-req-input').value.trim(); if(!p){toast('İstek yazın','error');return;} document.getElementById('custom-req-box').classList.remove('open'); await doRevise(p); document.getElementById('custom-req-input').value=''; }
+  async function submitCustomReq() { const p=document.getElementById('custom-req-input').value.trim(); if(!p){toast('Please describe what you want changed.','error');return;} document.getElementById('custom-req-box').classList.remove('open'); await doRevise(p); document.getElementById('custom-req-input').value=''; }
   async function quickRevise(p) { await doRevise(p); }
   async function doRevise(promptStr) {
     if(!selectedId) return;
     const ta=document.getElementById('rp-text'); ta.classList.add('blurred');
-    try { const r=await fetch(`/shopify/jobs/${selectedId}/revise`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptStr})}); const d=await r.json(); if(!r.ok) throw new Error(d.detail); ta.value=d.new_text; document.getElementById('unsaved-pill').style.display='inline-flex'; toast('Güncellendi','success'); } catch(e){toast('Hata: '+e.message,'error');}
+    try { const r=await fetch(`/shopify/jobs/${selectedId}/revise`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:promptStr})}); const d=await r.json(); if(!r.ok) throw new Error(d.detail); ta.value=d.new_text; document.getElementById('unsaved-pill').style.display='inline-flex'; toast('Copy updated.','success'); }
+    catch(e){toast('Revision failed: '+e.message,'error');}
     finally { ta.classList.remove('blurred'); }
   }
-  async function doRegenerate() { if(!selectedId) return; try{const r=await fetch(`/shopify/jobs/${selectedId}/regenerate`,{method:'POST',headers:{'Content-Type':'application/json'}});if(!r.ok)throw new Error();toast('Kuyruğa eklendi','info');closePanel();await fetchJobs();}catch(e){toast('Hata','error');} }
+  async function doRegenerate() { if(!selectedId) return; try{const r=await fetch(`/shopify/jobs/${selectedId}/regenerate`,{method:'POST',headers:{'Content-Type':'application/json'}});if(!r.ok)throw new Error();toast('Re-queued for generation.','info');closePanel();await fetchJobs();}catch(e){toast('Error','error');} }
   async function doApprove() {
     if(!selectedId) return;
     const btn=document.getElementById('btn-approve'),text=document.getElementById('rp-text').value;
-    btn.disabled=true; btn.textContent='Gönderiliyor...';
-    try { const r=await fetch(`/shopify/jobs/${selectedId}/manual_approve`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({manual_text:text})}); if(!r.ok) throw new Error(); const job=productsArray.find(j=>j.id===selectedId); if(job) job.status='COMPLETED'; toast('Shopify güncellendi!','success'); closePanel(); renderGrid(); } catch(e){toast('Gönderim hatası','error');}
-    finally { btn.disabled=false; btn.textContent="Onayla ve Shopify'a Gönder"; }
+    btn.disabled=true; btn.textContent='Pushing to Shopify...';
+    try { const r=await fetch(`/shopify/jobs/${selectedId}/manual_approve`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({manual_text:text})}); if(!r.ok) throw new Error(); const job=productsArray.find(j=>j.id===selectedId); if(job) job.status='COMPLETED'; toast('Product updated on Shopify!','success'); closePanel(); renderGrid(); }
+    catch(e){toast('Push failed','error');}
+    finally { btn.disabled=false; btn.innerHTML='<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Approve &amp; Push to Shopify'; }
   }
+
+  // CHAT
   function toggleChat() { const w=document.getElementById('chat-win'); w.style.display=w.style.display==='flex'?'none':'flex'; }
-  async function sendChat() { const inp=document.getElementById('cw-input'),t=inp.value.trim(); if(!t) return; const b=document.getElementById('cw-body'); b.innerHTML+=`<div class="cb user">${t}</div>`; inp.value=''; try{const r=await fetch('/agent/chat',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':'tarik-proje'},body:JSON.stringify({message:t})});const d=await r.json();b.innerHTML+=`<div class="cb ai">${d.answer||'Hata'}</div>`;}catch(e){b.innerHTML+=`<div class="cb ai">Bağlantı hatası</div>`;} b.scrollTop=b.scrollHeight; }
+  function appendChat(role,text) { const b=document.getElementById('cw-body'),d=document.createElement('div'); d.className='cb '+role; d.textContent=text; b.appendChild(d); b.scrollTop=b.scrollHeight; }
+  async function sendChat() {
+    const inp=document.getElementById('cw-input'),t=inp.value.trim(); if(!t) return;
+    appendChat('user',t); inp.value='';
+    try { const r=await fetch('/agent/chat',{method:'POST',headers:{'Content-Type':'application/json','X-API-Key':'tarik-proje'},body:JSON.stringify({message:t})}); const d=await r.json(); appendChat('ai',d.answer||'Error'); }
+    catch(e){appendChat('ai','Connection error');}
+  }
+
+  // TOAST
   function toast(msg,type='info'){const c=document.getElementById('toasts'),t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),3200);}
-  async function triggerBatch(){const u=document.getElementById('sheet-url').value.trim();toast(u?'Pipeline tetiklendi.':'URL girin.',u?'success':'error');}
-  async function generateDescription(){const ti=document.getElementById('product-title').value.trim();if(!ti){toast('Ürün adı girin','error');return;}toast('Üretiliyor...','info');try{const r=await fetch('/description/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product_name:ti,features:document.getElementById('product-features').value,tone:document.getElementById('tone-select').value})});const d=await r.json();const o=document.getElementById('gen-output');o.textContent=d.description||'Sonuç yok';o.style.display='block';}catch(e){toast('Hata','error');}}
-  fetchJobs(); setInterval(fetchJobs,5000);
+
+  // STUBS
+  async function triggerBatch(){const u=document.getElementById('sheet-url').value.trim();toast(u?'Pipeline triggered.':'Please enter a Sheet URL.',u?'success':'error');}
+  async function generateDescription(){
+    const ti=document.getElementById('product-title').value.trim(); if(!ti){toast('Please enter a product name.','error');return;}
+    toast('Generating...','info');
+    try { const r=await fetch('/description/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product_name:ti,features:document.getElementById('product-features').value,tone:document.getElementById('tone-select').value})}); const d=await r.json(); const o=document.getElementById('gen-output'); o.textContent=d.description||'No result'; o.style.display='block'; }
+    catch(e){toast('Error: '+e.message,'error');}
+  }
+
+  // FAQ ACCORDION
+  function toggleFaq(qEl) {
+    const item=qEl.closest('.faq-item'), isOpen=item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+    if(!isOpen) item.classList.add('open');
+  }
+
+  // ONBOARDING TOUR
+  const TOUR_STEPS = [
+    { target: null, title: 'Welcome to Shopify AI Optimizer', desc: "This tool automatically generates AI-powered product descriptions for your Shopify store. Let's take a quick tour — it'll take less than a minute." },
+    { target: '#sidebar', title: 'Navigation Sidebar', desc: 'Three modules live here: the Optimizer dashboard, the Batch Pipeline for bulk processing via Google Sheets + n8n, and the manual Copy Generator. The Help icon at the bottom opens this documentation.' },
+    { target: '#btn-connect', title: 'Step 1 — Connect Shopify', desc: "Click \"Connect Shopify\" to fetch your store's products. The system identifies which products have missing or weak descriptions and queues them for AI processing." },
+    { target: '#filter-bar', title: 'Step 2 — Filter by Status', desc: 'Use these tabs to filter products by state: Pending → Processing (AI working) → Needs Review → Done. Focus on "Needs Review" to start approving.' },
+    { target: '#grid-wrap', title: 'Step 3 — Product Cards', desc: 'Each card shows the product image, title, and AI status. Click any card marked "Needs Review" to open the editor and review the AI-written copy.' },
+    { target: '#chat-trigger', title: 'Step 4 — AI Sales Assistant', desc: "The chat icon opens your AI assistant. It's context-aware — when a product is open in the editor, it knows which product you're looking at and gives relevant advice." },
+  ];
+
+  let tourStep = 0;
+  function startTour() { tourStep=0; document.getElementById('tour-overlay').classList.remove('tour-hidden'); buildDots(); showStep(0); }
+  function buildDots() { const c=document.getElementById('tour-dots'); c.innerHTML=''; TOUR_STEPS.forEach(()=>{const d=document.createElement('div');d.className='tour-dot';c.appendChild(d);}); }
+
+  function showStep(idx) {
+    const step=TOUR_STEPS[idx], popup=document.getElementById('tour-popup'), spot=document.getElementById('tour-spotlight');
+    const dots=document.querySelectorAll('.tour-dot'), btnNext=document.getElementById('btn-tour-next');
+    document.getElementById('tour-step-label').textContent=`Step ${idx+1} of ${TOUR_STEPS.length}`;
+    document.getElementById('tour-title').textContent=step.title;
+    document.getElementById('tour-desc').textContent=step.desc;
+    btnNext.textContent = idx===TOUR_STEPS.length-1 ? 'Done ✓' : 'Next →';
+    dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+    popup.style.transform='';
+    const POPUP_W=320, POPUP_H=240, PAD=12, GAP=16;
+    if(step.target){
+      const el=document.querySelector(step.target);
+      if(el){
+        const r=el.getBoundingClientRect(), sp=8;
+        spot.style.cssText=`left:${r.left-sp}px;top:${r.top-sp}px;width:${r.width+sp*2}px;height:${r.height+sp*2}px;display:block;`;
+        const vw=window.innerWidth, vh=window.innerHeight;
+        let left, top;
+        if(r.right+GAP+POPUP_W+PAD<=vw){left=r.right+GAP;top=Math.max(PAD,Math.min(r.top,vh-POPUP_H-PAD));}
+        else if(r.left-GAP-POPUP_W-PAD>=0){left=r.left-GAP-POPUP_W;top=Math.max(PAD,Math.min(r.top,vh-POPUP_H-PAD));}
+        else if(r.bottom+GAP+POPUP_H+PAD<=vh){left=Math.max(PAD,Math.min(r.left,vw-POPUP_W-PAD));top=r.bottom+GAP;}
+        else{left=Math.max(PAD,Math.min(r.left,vw-POPUP_W-PAD));top=Math.max(PAD,r.top-POPUP_H-GAP);}
+        left=Math.max(PAD,Math.min(left,vw-POPUP_W-PAD));
+        top=Math.max(PAD,Math.min(top,vh-POPUP_H-PAD));
+        popup.style.left=left+'px'; popup.style.top=top+'px';
+      }
+    } else {
+      spot.style.display='none';
+      popup.style.left='50%'; popup.style.top='50%'; popup.style.transform='translate(-50%,-50%)';
+    }
+  }
+
+  function nextStep() { if(tourStep>=TOUR_STEPS.length-1){endTour();return;} tourStep++; showStep(tourStep); }
+  function endTour() { document.getElementById('tour-overlay').classList.add('tour-hidden'); localStorage.setItem('shopify_optimizer_tour_done','1'); }
+
+  // INIT
+  fetchJobs();
+  setInterval(fetchJobs, 5000);
+  if(!localStorage.getItem('shopify_optimizer_tour_done')) setTimeout(startTour, 600);
 </script>
 </body>
 </html>

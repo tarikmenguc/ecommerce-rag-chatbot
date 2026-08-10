@@ -147,3 +147,73 @@ async def generate_ecommerce_description(prompt: str) -> tuple[str, int, int, st
         
         # Return 5-tuple for timed_llm_call decorator: (response, input_tokens, output_tokens, model, api_key)
         return text, in_tok, out_tok, "ecommerce-llama3", "local"
+
+
+@timed_llm_call(caller="generate_description_from_vision")
+async def generate_description_from_vision(
+    title: str,
+    vision_analysis: str,
+    original_description: str | None = None,
+    tone: str = "compelling"
+) -> tuple[str, int, int, str, str]:
+    """Generates an e-commerce product description using the local Ollama fine-tuned model, augmented with vision analysis and original text specs."""
+    url = f"{settings.ollama_base_url}/api/generate"
+    
+    # Merge visual features with any existing text specs (like 'waterproof', dimensions, etc.)
+    specs = original_description if original_description else "None provided."
+    prompt = f"Title: {title}\nExisting Specs: {specs}\nVisual Details: {vision_analysis}"
+    
+    payload = {
+        "model": "e-commerce",
+        "prompt": prompt,
+        "system": f"You are an expert e-commerce copywriter. Write a {tone}, SEO-friendly product description based on the provided title and the technical visual features extracted from the product image. Be factual but persuasive.",
+        "stream": False,
+        "options": {
+            "temperature": 0.4,
+            "num_predict": 400,
+        }
+    }
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(url, json=payload, timeout=120.0)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        text = data.get("response", "")
+        in_tok = data.get("prompt_eval_count", 0)
+        out_tok = data.get("eval_count", 0)
+        
+        return text, in_tok, out_tok, "ecommerce-llama3", "local"
+
+
+@timed_llm_call(caller="revise_ecommerce_description")
+async def revise_ecommerce_description(
+    original_text: str,
+    revision_prompt: str
+) -> tuple[str, int, int, str, str]:
+    """Revises an existing e-commerce description based on user feedback."""
+    url = f"{settings.ollama_base_url}/api/generate"
+    
+    prompt = f"Original Description:\n{original_text}\n\nRevision Request:\n{revision_prompt}\n\nPlease provide the updated description:"
+    
+    payload = {
+        "model": "e-commerce",
+        "prompt": prompt,
+        "system": "You are an expert e-commerce copywriter. Revise the provided product description according to the user's specific request. Return ONLY the revised description text.",
+        "stream": False,
+        "options": {
+            "temperature": 0.4,
+            "num_predict": 400,
+        }
+    }
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(url, json=payload, timeout=120.0)
+        resp.raise_for_status()
+        data = resp.json()
+        
+        text = data.get("response", "")
+        in_tok = data.get("prompt_eval_count", 0)
+        out_tok = data.get("eval_count", 0)
+        
+        return text, in_tok, out_tok, "ecommerce-llama3", "local"

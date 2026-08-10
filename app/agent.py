@@ -38,12 +38,23 @@ async def run_agent(
     client = get_gemini()
     
     system_prompt = (
-        "You are an AI-powered, friendly e-commerce sales assistant.\n"
-        "Your tasks: Understand customer requests, search for products, check stock, and offer the best options to the customer.\n"
-        "Always use the appropriate tools based on the customer's criteria (budget, category, etc.).\n"
-        "Interpret the results from the tools and respond to the customer in a natural, helpful, and sales-oriented tone.\n"
-        "Think step-by-step: 1. What does the user want? 2. Which tool should I use? 3. How should I present the data?\n"
-        "Only answer based on the results from your tools. Do not hallucinate information."
+        "You are an expert, friendly AI sales assistant for an e-commerce store.\n"
+        "You help customers find products, check stock, and make great purchasing decisions.\n\n"
+        "CRITICAL RULES:\n"
+        "1. NEVER call the same tool with the same arguments twice. If a search returns no results, "
+        "do NOT retry it. Accept the result and respond to the customer.\n"
+        "2. If a search returns NO results, respond gracefully like a skilled salesperson:\n"
+        "   - Acknowledge that the specific item is not in your catalog.\n"
+        "   - Suggest the customer try a broader or related search (e.g., 'We don't carry perfumes, "
+        "but would you like me to search for skincare or beauty products instead?').\n"
+        "   - If you have ANY related products from a previous search, highlight them.\n"
+        "3. Act like a top-tier salesperson: be warm, helpful, and proactive. Don't just say 'not found' — "
+        "pivot, suggest alternatives, and keep the customer engaged.\n"
+        "4. Use tools strategically: one search_products call per intent is enough. "
+        "If results are empty, move on to your response — do NOT search again.\n"
+        "5. Only answer based on the results from your tools. Do not make up product information.\n"
+        "6. Present products in a clean, appealing format with title, price, and rating.\n"
+        "7. ALWAYS give a final text answer to the customer. Never end on a tool call."
     )
     
     # 1. Initialize history for the Chat object
@@ -74,6 +85,7 @@ async def run_agent(
     tools_used = []
     in_tok = 0
     out_tok = 0
+    _seen_calls: set[str] = set()  # Track (tool_name, args) to detect repeated calls
     
     # Send the initial user message
     message_to_send = user_message
@@ -90,10 +102,20 @@ async def run_agent(
         # Check if model wants to call tools
         if response.function_calls:
             func_response_parts = []
+            has_duplicate = False
             
             for fc in response.function_calls:
                 func_name = fc.name
                 func_args = fc.args
+                
+                # Detect duplicate tool calls (same tool + same args)
+                call_sig = f"{func_name}:{sorted(func_args.items()) if func_args else ''}"
+                if call_sig in _seen_calls:
+                    log.warning(f"Duplicate tool call detected: {func_name} — breaking loop")
+                    has_duplicate = True
+                    break
+                _seen_calls.add(call_sig)
+                
                 log.info(f"Agent calling tool: {func_name} with args: {func_args}")
                 tools_used.append(func_name)
                 
@@ -121,6 +143,26 @@ async def run_agent(
                     part.function_response.id = fc.id
                     
                 func_response_parts.append(part)
+            
+            # If a duplicate was detected, force the model to give a final text answer
+            if has_duplicate:
+                force_msg = (
+                    "You already searched for this and got no results. "
+                    "Do NOT search again. Respond to the customer now: "
+                    "politely say this item is not in your catalog and "
+                    "suggest they try a different category or ask about something else."
+                )
+                response = await chat.send_message(force_msg)
+                if response.usage_metadata:
+                    in_tok += response.usage_metadata.prompt_token_count
+                    out_tok += response.usage_metadata.candidates_token_count
+                return {
+                    "answer": response.text or "I'm sorry, we don't currently carry that item in our store. Would you like me to help you find something else?",
+                    "tools_used": tools_used,
+                    "iterations": i + 1,
+                    "input_tokens": in_tok,
+                    "output_tokens": out_tok
+                }
                 
             # The next message to send is the tool responses
             message_to_send = func_response_parts
@@ -136,8 +178,13 @@ async def run_agent(
             "output_tokens": out_tok
         }
         
+    # Graceful fallback: even if we exhaust iterations, respond like a salesperson
     return {
-        "answer": "I'm sorry, I couldn't complete the task in the allowed number of steps.",
+        "answer": (
+            "I wasn't able to find exactly what you're looking for in our catalog right now. "
+            "Could you try describing what you need in a different way, or would you like me to "
+            "show you our most popular products instead?"
+        ),
         "tools_used": tools_used,
         "iterations": max_iterations,
         "input_tokens": in_tok,

@@ -12,31 +12,32 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:         #f4f4f5;
+      --bg-start:   #f8fafc;
+      --bg-end:     #f1f5f9;
       --surface:    #ffffff;
-      --border:     #e4e4e7;
-      --border-focus: #a1a1aa;
-      --text-primary:   #18181b;
-      --text-secondary: #71717a;
-      --text-muted:     #a1a1aa;
-      --accent:     #4f46e5;
-      --accent-hover:#4338ca;
-      --accent-soft:#eef2ff;
+      --border:     #e2e8f0;
+      --border-focus: #94a3b8;
+      --text-primary:   #0f172a;
+      --text-secondary: #475569;
+      --text-muted:     #94a3b8;
+      --accent:     #6366f1;
+      --accent-hover:#4f46e5;
+      --accent-soft:#e0e7ff;
       --success:    #10b981;
       --success-soft:#d1fae5;
       --error:      #ef4444;
       --error-soft: #fee2e2;
-      --shadow-sm:  0 1px 2px rgba(0,0,0,.05);
-      --shadow-md:  0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
-      --shadow-lg:  0 10px 15px -3px rgba(0,0,0,.07), 0 4px 6px -2px rgba(0,0,0,.04);
-      --radius-sm:  6px;
-      --radius-md:  10px;
-      --radius-lg:  14px;
-      --transition: 180ms cubic-bezier(.4,0,.2,1);
+      --shadow-sm:  0 1px 2px rgba(0,0,0,.04);
+      --shadow-md:  0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -1px rgba(0,0,0,.03);
+      --shadow-lg:  0 10px 25px -5px rgba(0,0,0,.08), 0 8px 10px -6px rgba(0,0,0,.04);
+      --radius-sm:  8px;
+      --radius-md:  12px;
+      --radius-lg:  16px;
+      --transition: 200ms cubic-bezier(.4,0,.2,1);
     }
 
     html { font-family: 'Inter', system-ui, sans-serif; font-size: 15px; }
-    body  { background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+    body  { background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
 
     /* ── NAV ── */
     nav {
@@ -103,20 +104,20 @@
     /* ── FORM ELEMENTS ── */
     label { font-size: .83rem; font-weight: 500; color: var(--text-secondary); display: block; margin-bottom: .35rem; }
     input[type="text"], textarea, select {
-      width: 100%; padding: .6rem .85rem;
+      width: 100%; padding: .75rem 1rem;
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      font-family: inherit; font-size: .9rem; color: var(--text-primary);
-      background: var(--bg);
-      transition: border-color var(--transition), box-shadow var(--transition);
+      font-family: inherit; font-size: .95rem; color: var(--text-primary);
+      background: #f8fafc;
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
       resize: none; outline: none;
     }
     input[type="text"]:focus, textarea:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79,70,229,.12);
-      background: #fff;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+      background: #ffffff;
     }
-    textarea { min-height: 130px; line-height: 1.55; }
+    textarea { min-height: 130px; line-height: 1.6; }
     .char-hint { font-size: .75rem; color: var(--text-muted); margin-top: .2rem; text-align: right; }
 
     /* ── CONTROLS ROW ── */
@@ -413,17 +414,29 @@
 
     <!-- Architecture diagram -->
     <div class="arch-row">
-      <div class="arch-step"><div class="icon">📊</div><span>Google Sheets</span></div>
+      <div class="arch-step"><div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div><span>Google Sheets</span></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">⚙️</div><span>n8n</span></div>
+      <div class="arch-step"><div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div><span>n8n</span></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">🚀</div><span>FastAPI</span></div>
+      <div class="arch-step"><div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </div><span>FastAPI</span></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">🤖</div><span>Llama-3</span></div>
+      <div class="arch-step"><div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+      </div><span>Llama-3</span></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon">🔔</div><span>Webhook</span></div>
+      <div class="arch-step"><div class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div><span>Webhook</span></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-step"><div class="icon" style="background:#d1fae5;border-color:#6ee7b7;">✅</div><span>Sheet Updated</span></div>
+      <div class="arch-step"><div class="icon" style="background:#d1fae5;border-color:#6ee7b7;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div><span>Done</span></div>
     </div>
 
     <!-- Sheet URL input -->
@@ -475,6 +488,110 @@
       <button id="chat-send-btn" class="btn-generate" onclick="sendChatMessage()" style="height: 50px; padding: 0 1.25rem;">Send</button>
     </div>
   </div>
+</div>
+
+<!-- TRENDYOL OPTIMIZER CARD -->
+<div class="card" id="shopify-card" style="margin-top: 1.5rem;">
+  <div class="card-header">
+    <span class="card-title">🛒 Shopify Optimizer</span>
+    <span class="nav-badge" style="background:#ffedd5;color:#f97316;border-color:#fdba74;">Shopify V2 API</span>
+  </div>
+  <div class="card-body">
+    <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <button class="btn-generate" onclick="connectShopify()" id="ty-connect-btn" style="background: #f97316;">
+            🔗 Bağlantıyı Test Et
+        </button>
+    </div>
+    
+    <div id="ty-status-box" style="padding: 1rem; border-radius: 6px; background: var(--bg); display: none; font-size: 0.9rem;"></div>
+    
+    <div id="ty-products-container" style="display: none; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; gap: 1rem;">
+            <button id="btn-optimize-all" class="btn-generate" onclick="optimizeShopify()" style="background: var(--accent);">
+                <span class="spinner"></span>
+                <span class="btn-text">Tümünü Optimize Et</span>
+            </button>
+            <button onclick="refreshShopifyJobs()" class="btn-generate" style="background: white; color: var(--text-secondary); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+                Kuyruğu Yenile
+            </button>
+        </div>
+        
+        <div id="ty-jobs-list" style="display: flex; flex-direction: column; gap: 1rem; max-height: 600px; overflow-y: auto; padding-right: 0.5rem; margin-top: 1rem;">
+            <!-- Jobs will be populated here -->
+        </div>
+        
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem;">
+            ⚖️ <b>Feragatname:</b> Yapay zeka tarafından üretilen içeriklerde hata olabilir. Güncellenen ürün açıklamalarının doğruluğu satıcının sorumluluğundadır.
+        </p>
+        
+        <div style="margin-top: 1rem; padding: 1rem; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 6px; font-size: 0.85rem; color: #3730a3;">
+            <b>💡 En İyi Sonuç İçin Kullanım İpuçları:</b>
+            <ul style="margin-top: 0.5rem; margin-left: 1.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                <li><b>Görsel Sınırları:</b> Yapay zeka, fotoğraftan rengi, dokuyu ve modeli anlar ancak gizli teknik özellikleri (su geçirmezlik, RAM kapasitesi, pil ömrü vb.) bilemez.</li>
+                <li><b>Başlıkların Önemi:</b> Shopify ürün başlıklarınızda <i>"Su Geçirmez Erkek Bot"</i> gibi kilit kelimeler geçiyorsa, model bunu görsel analiziyle birleştirerek <b>satış metninizi otomatik olarak su geçirmezlik üzerine kurgular.</b></li>
+            </ul>
+        </div>
+    </div>
+  </div>
+</div>
+
+<!-- JOB MODAL -->
+<div id="job-modal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+    <div style="background: white; border-radius: 16px; width: 90%; max-width: 700px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid rgba(255,255,255,0.1);">
+        <div style="padding: 20px 24px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-radius: 16px 16px 0 0;">
+            <div style="font-weight: 600; font-size: 1.1rem; color: #0f172a; letter-spacing: -0.01em;">Ürün İnceleme & Düzenleme</div>
+            <button onclick="closeModal()" style="background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 24px; transition: color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'">&times;</button>
+        </div>
+        
+        <div style="padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem; flex: 1; background: #fafafa;">
+            <input type="hidden" id="modal-job-id" />
+            <div style="display: flex; gap: 1.25rem; align-items: center;">
+                <img id="modal-img" src="" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid #e2e8f0; display: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" onerror="this.style.display='none'" />
+                <div>
+                    <div id="modal-title" style="font-weight: 600; color: #0f172a; font-size: 1.05rem;">Title</div>
+                    <div id="modal-barcode" style="font-size: 0.85rem; color: #64748b; margin-top: 4px;">Barcode</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label style="font-size: 0.9rem; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 6px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    Yapay Zeka Satış Metni <span style="font-weight: normal; color: #94a3b8; font-size: 0.8rem;">(İstediğiniz gibi düzenleyebilirsiniz)</span>
+                </label>
+                <textarea id="modal-text" style="width: 100%; height: 280px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', system-ui, sans-serif; font-size: 0.95rem; line-height: 1.6; resize: vertical; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);"></textarea>
+            </div>
+            
+            <!-- AI Revise Box -->
+            <div id="revise-box" style="display: none; margin-top: 0.5rem; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                <div style="font-size: 0.85rem; font-weight: 600; color: #166534; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    Yapay Zeka İle Düzelt
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="revise-prompt" placeholder="Örn: Daha kısa yaz, enerjik bir dil kullan..." style="flex: 1; padding: 10px 14px; border: 1px solid #86efac; border-radius: 6px; font-size: 0.9rem; background: #ffffff;" />
+                    <button onclick="submitRevise()" id="btn-submit-revise" style="background: #16a34a; color: white; border: none; border-radius: 6px; padding: 0 20px; font-size: 0.9rem; cursor: pointer; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">Uygula</button>
+                    <button onclick="document.getElementById('revise-box').style.display='none'" style="background: transparent; color: #64748b; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 500;">İptal</button>
+                </div>
+            </div>
+        </div>
+        
+        <div style="padding: 16px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #ffffff; border-radius: 0 0 16px 16px;">
+            <div style="display: flex; gap: 12px;">
+                <button onclick="document.getElementById('revise-box').style.display='block'; document.getElementById('revise-prompt').focus();" class="btn-generate" style="background: #f1f5f9; border: none; color: #334155; padding: 10px 18px; font-size: 0.9rem; border-radius: 8px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Düzelt
+                </button>
+                <button onclick="regenerateJob()" id="btn-regenerate" class="btn-generate" style="background: #fef2f2; border: none; color: #dc2626; padding: 10px 18px; font-size: 0.9rem; border-radius: 8px; font-weight: 600; transition: background 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin-right: 6px; vertical-align: text-bottom;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    Baştan Yaz
+                </button>
+            </div>
+            <button onclick="saveAndApproveJob()" id="btn-save-approve" class="btn-generate" style="background: var(--accent); color: white; border: none; padding: 10px 24px; font-size: 0.95rem; border-radius: 8px; font-weight: 600;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Kaydet ve Onayla
+            </button>
+        </div>
+    </div>
 </div>
 
 </main>
@@ -728,6 +845,249 @@
       sendChatMessage();
     }
   });
+
+  // ── Shopify Integration ─────────────────────────────────────────────────────
+  let shopifyProducts = [];
+  
+  async function connectShopify() {
+      const btn = document.getElementById('ty-connect-btn');
+      const statusBox = document.getElementById('ty-status-box');
+      
+      btn.innerHTML = 'Bağlanıyor...';
+      btn.disabled = true;
+      
+      try {
+          const resp = await fetch('/shopify/connect');
+          const data = await resp.json();
+          
+          if (!resp.ok) throw new Error(data.detail || 'Connection failed');
+          
+          statusBox.style.display = 'block';
+          statusBox.innerHTML = `✅ <b>Bağlantı Başarılı!</b> Toplam ${data.total_products} ürün bulundu.<br>⚠️ ${data.needs_optimization.length} ürünün açıklaması eksik/yetersiz.`;
+          
+          shopifyProducts = data.needs_optimization;
+          
+          if (shopifyProducts.length > 0) {
+              document.getElementById('ty-products-container').style.display = 'flex';
+              refreshShopifyJobs();
+          }
+      } catch (e) {
+          statusBox.style.display = 'block';
+          statusBox.innerHTML = `❌ <b>Hata:</b> ${e.message}`;
+      } finally {
+          btn.innerHTML = '🔗 Bağlantıyı Test Et';
+          btn.disabled = false;
+      }
+  }
+
+  async function optimizeShopify() {
+      if (shopifyProducts.length === 0) return;
+      
+      const btn = document.getElementById('btn-optimize-all');
+      btn.classList.add('loading');
+      btn.disabled = true;
+      
+      try {
+          const resp = await fetch('/shopify/optimize', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ items: shopifyProducts })
+          });
+          
+          if (resp.ok) {
+              refreshShopifyJobs();
+          }
+      } catch(e) {
+          alert('Optimize hatası: ' + e.message);
+      } finally {
+          btn.classList.remove('loading');
+          btn.disabled = false;
+      }
+  }
+
+  let allJobs = [];
+
+  async function refreshShopifyJobs() {
+      try {
+          const resp = await fetch('/shopify/jobs');
+          allJobs = await resp.json();
+          
+          const container = document.getElementById('ty-jobs-list');
+          container.innerHTML = '';
+          
+          allJobs.forEach(job => {
+              const statusColors = {
+                  'PENDING': { bg: '#f3f4f6', text: '#4b5563', label: 'Bekliyor' },
+                  'VISION_PROCESSING': { bg: '#e0e7ff', text: '#4338ca', label: 'Görsel Analizi' },
+                  'TEXT_GENERATING': { bg: '#dbeafe', text: '#1d4ed8', label: 'Metin Üretiliyor' },
+                  'AWAITING_APPROVAL': { bg: '#ffedd5', text: '#c2410c', label: 'Onay Bekliyor' },
+                  'SENDING': { bg: '#fef3c7', text: '#b45309', label: 'Gönderiliyor' },
+                  'COMPLETED': { bg: '#d1fae5', text: '#047857', label: 'Tamamlandı' },
+                  'FAILED': { bg: '#fee2e2', text: '#b91c1c', label: 'Başarısız' }
+              };
+              
+              const st = job.status === 'APPROVAL' ? 'AWAITING_APPROVAL' : job.status;
+              const color = statusColors[st] || statusColors['PENDING'];
+              const statusBadge = `<span style="padding: 4px 10px; background:${color.bg}; color:${color.text}; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;">${color.label}</span>`;
+              
+              let actionBtn = '';
+              let details = '';
+              let thumbnailHtml = '';
+
+              if (job.image_url) {
+                  thumbnailHtml = `<img src="${job.image_url}" alt="${job.original_title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;" onerror="this.style.display='none'">`;
+              }
+              
+              if (job.status === 'APPROVAL' || job.status === 'AWAITING_APPROVAL') {
+                  actionBtn = `<button onclick="openModal(${job.id})" class="btn-generate" style="background:#10b981; padding: 6px 12px; font-size: 13px;">🔍 İncele / Düzenle</button>`;
+              } else if (job.status === 'FAILED' && job.error_message) {
+                  details = `
+                      <div style="margin-top: 0.75rem; padding: 10px; background: #fef2f2; border-left: 4px solid #ef4444; color: #b91c1c; font-size: 12px; border-radius: 4px;">
+                          <b>Hata Detayı:</b> ${job.error_message}
+                      </div>
+                  `;
+              } else if (job.status === 'COMPLETED') {
+                  details = `
+                      <div style="margin-top: 0.75rem; padding: 10px; background: #ecfdf5; border-left: 4px solid #10b981; color: #047857; font-size: 12px; border-radius: 4px;">
+                          ✅ Shopify mağazasına başarıyla gönderildi ve ürün güncellendi!
+                      </div>
+                  `;
+              }
+              
+              container.innerHTML += `
+                  <div style="background: var(--surface); border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: box-shadow 0.2s;">
+                      <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center;">
+                          <div style="display: flex; gap: 1rem; flex: 1; align-items: center;">
+                              ${thumbnailHtml}
+                              <div>
+                                  <div style="font-weight: 600; color: #111827; font-size: 14px; margin-bottom: 2px;">${job.original_title}</div>
+                                  <div style="font-size: 12px; color: #6b7280; display: flex; align-items: center; gap: 8px;">
+                                      <span>Barkod: <b>${job.barcode || 'Yok'}</b></span>
+                                  </div>
+                              </div>
+                          </div>
+                          <div style="display: flex; align-items: center; gap: 1rem;">
+                              ${statusBadge}
+                              ${actionBtn}
+                          </div>
+                      </div>
+                      ${details}
+                  </div>
+              `;
+          });
+      } catch (e) {
+          console.error("Jobs fetch failed", e);
+      }
+  }
+
+  // --- Modal Logic ---
+  function openModal(jobId) {
+      const job = allJobs.find(j => j.id === jobId);
+      if (!job) return;
+      
+      document.getElementById('modal-job-id').value = job.id;
+      document.getElementById('modal-title').textContent = job.original_title;
+      document.getElementById('modal-barcode').textContent = 'Barkod: ' + (job.barcode || 'Yok');
+      document.getElementById('modal-text').value = job.generated_description || '';
+      
+      const img = document.getElementById('modal-img');
+      if (job.image_url) {
+          img.src = job.image_url;
+          img.style.display = 'block';
+      } else {
+          img.style.display = 'none';
+      }
+      
+      document.getElementById('revise-box').style.display = 'none';
+      document.getElementById('revise-prompt').value = '';
+      
+      document.getElementById('job-modal').style.display = 'flex';
+  }
+  
+  function closeModal() {
+      document.getElementById('job-modal').style.display = 'none';
+  }
+  
+  async function saveAndApproveJob() {
+      const jobId = document.getElementById('modal-job-id').value;
+      const text = document.getElementById('modal-text').value;
+      const btn = document.getElementById('btn-save-approve');
+      
+      btn.innerHTML = 'Kaydediliyor...';
+      btn.disabled = true;
+      
+      try {
+          const resp = await fetch(`/shopify/jobs/${jobId}/manual_approve`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ manual_text: text })
+          });
+          if (!resp.ok) throw new Error('Onaylanırken hata oluştu');
+          
+          closeModal();
+          refreshShopifyJobs();
+      } catch (e) {
+          alert(e.message);
+      } finally {
+          btn.innerHTML = '✅ Kaydet ve Onayla';
+          btn.disabled = false;
+      }
+  }
+  
+  async function submitRevise() {
+      const jobId = document.getElementById('modal-job-id').value;
+      const prompt = document.getElementById('revise-prompt').value.trim();
+      if (!prompt) return;
+      
+      const btn = document.getElementById('btn-submit-revise');
+      btn.innerHTML = 'Bekleyin...';
+      btn.disabled = true;
+      document.getElementById('modal-text').disabled = true;
+      
+      try {
+          const resp = await fetch(`/shopify/jobs/${jobId}/revise`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: prompt })
+          });
+          const data = await resp.json();
+          if (!resp.ok) throw new Error(data.detail || 'Revizyon hatası');
+          
+          document.getElementById('modal-text').value = data.new_text;
+          document.getElementById('revise-box').style.display = 'none';
+          document.getElementById('revise-prompt').value = '';
+      } catch (e) {
+          alert(e.message);
+      } finally {
+          btn.innerHTML = 'Uygula';
+          btn.disabled = false;
+          document.getElementById('modal-text').disabled = false;
+      }
+  }
+  
+  async function regenerateJob() {
+      const jobId = document.getElementById('modal-job-id').value;
+      const btn = document.getElementById('btn-regenerate');
+      
+      btn.innerHTML = 'Bekleyin...';
+      btn.disabled = true;
+      
+      try {
+          const resp = await fetch(`/shopify/jobs/${jobId}/regenerate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' }
+          });
+          if (!resp.ok) throw new Error('Hata oluştu');
+          
+          closeModal();
+          refreshShopifyJobs();
+      } catch (e) {
+          alert(e.message);
+      } finally {
+          btn.innerHTML = '🔄 Baştan Yaz';
+          btn.disabled = false;
+      }
+  }
 </script>
 
 </body>

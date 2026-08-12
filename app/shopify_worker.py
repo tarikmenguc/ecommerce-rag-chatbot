@@ -52,14 +52,36 @@ async def _process_shopify_job(job: ShopifyJob, session, client: ShopifyClient):
         if job.status == ShopifyJobStatus.SENDING:
             if not job.generated_description:
                 raise ValueError("Cannot send to Shopify: Generated description is empty.")
-                
-            await client.update_product_description(
-                barcode=job.barcode,
-                new_description=job.generated_description
-            )
+
+            if job.is_new_product:
+                # NEW PRODUCT — Create on Shopify (POST)
+                result = await client.create_product(
+                    title=job.original_title,
+                    body_html=job.generated_description,
+                    vendor=job.vendor or "",
+                    product_type=job.product_type or "",
+                    tags=job.tags or "",
+                    price=job.price or "0.00",
+                    sku=job.sku or "",
+                    barcode=job.barcode or "",
+                    image_url=job.image_url or "",
+                    inventory_quantity=job.stock_quantity,
+                )
+                # Store the new Shopify product ID
+                new_id = result.get("product", {}).get("id")
+                if new_id:
+                    job.shopify_product_id = str(new_id)
+                log.info(f"Shopify Job {job.id} created NEW product (Shopify ID: {new_id}).")
+            else:
+                # EXISTING PRODUCT — Update on Shopify (PUT)
+                await client.update_product_description(
+                    product_id=job.shopify_product_id,
+                    new_description=job.generated_description
+                )
+                log.info(f"Shopify Job {job.id} updated existing product on Shopify.")
+
             job.status = ShopifyJobStatus.COMPLETED
             await session.commit()
-            log.info(f"Shopify Job {job.id} successfully sent to Shopify.")
 
     except Exception as e:
         log.error(f"Shopify Job {job.id} failed: {str(e)}")

@@ -112,3 +112,46 @@ class ShopifyClient:
         url = self.base_url.replace("products.json", f"products/{product_id}.json")
         resp = await self._request("PUT", url, json_data=payload)
         return resp.json()
+
+    async def create_product(
+        self,
+        title: str,
+        body_html: str,
+        vendor: str = "",
+        product_type: str = "",
+        tags: str = "",
+        price: str = "0.00",
+        sku: str = "",
+        barcode: str = "",
+        image_url: str = "",
+        inventory_quantity: int | None = None,
+    ) -> Dict[str, Any]:
+        """Create a NEW product on Shopify (POST Admin API)."""
+        variant: Dict[str, Any] = {"price": price}
+        if sku:
+            variant["sku"] = sku
+        if barcode:
+            variant["barcode"] = barcode
+        if inventory_quantity is not None:
+            variant["inventory_quantity"] = inventory_quantity
+            variant["inventory_management"] = "shopify"
+
+        product_data: Dict[str, Any] = {
+            "title": title,
+            "body_html": body_html,
+            "variants": [variant],
+            "status": "active",  # Aktif olarak oluştur
+        }
+        if vendor:
+            product_data["vendor"] = vendor
+        if product_type:
+            product_data["product_type"] = product_type
+        if tags:
+            product_data["tags"] = tags
+        if image_url:
+            product_data["images"] = [{"src": image_url}]
+
+        payload = {"product": product_data}
+        resp = await self._request("POST", self.base_url, json_data=payload)
+        return resp.json()
+

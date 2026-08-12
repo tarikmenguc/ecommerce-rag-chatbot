@@ -1,69 +1,105 @@
-# 🚀 E-Commerce AI Copywriter (End-to-End LLM Fine-Tuning & Deployment)
+<div align="center">
+  
+# 🤖 Shopify AI Optimizer
 
-Welcome to the **E-Commerce AI Copywriter** project! This repository showcases a complete, end-to-end AI engineering pipeline—from generating a synthetic dataset and fine-tuning an open-source LLM, to serving it via a FastAPI backend with a premium Glassmorphism UI.
+**The $0/month Local AI Engine that writes your e-commerce product descriptions on autopilot.**
 
-## 🎯 What is this project?
-Writing compelling, SEO-friendly, and highly converting product descriptions is a time-consuming and expensive process for e-commerce businesses. While APIs like GPT-4 or Gemini can do this, they incur recurring costs and rate limits at scale. 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Shopify](https://img.shields.io/badge/Shopify-95BF47?style=flat&logo=shopify&logoColor=white)](https://shopify.com)
 
-**This project solves that problem by:**
-1. Fine-tuning a local, open-source model (**Llama-3 8B**) to become an expert e-commerce copywriter.
-2. Generating high-quality descriptions from just a short product title and a few bullet-point features.
-3. Operating at **$0 recurring cost** with absolute data privacy.
+[Live Demo](http://localhost:8000) &middot; [API Documentation](http://localhost:8000/docs) &middot; [Report Bug](#)
 
-## ✨ Key Features & Architecture
-- **Synthetic Data Generation:** Used Google Gemini to generate a dataset of 2,207 high-quality e-commerce examples (Titles, Features, and target Descriptions).
-- **QLoRA Fine-Tuning:** Fine-tuned `llama-3-8b-Instruct` using the `Unsloth` library to massively reduce VRAM usage (fits on a free Kaggle/Colab T4 GPU).
-- **FastAPI Backend:** A lightweight, async REST API to serve the model to front-end applications.
-- **Ollama Integration:** The fine-tuned weights are converted to GGUF and served locally via Ollama for seamless inference.
-- **Premium UI:** A vanilla HTML/CSS/JS frontend featuring a modern dark/light-gray theme, glassmorphism effects, and skeleton loaders to provide a premium user experience.
-- **A/B Testing Framework:** Includes automated scripts to test the fine-tuned local model against commercial APIs (Gemini 3.5 Flash) to measure Latency, Cost, and Quality.
+<br/>
 
-## 📈 Why Local Fine-Tuning? (The ROI)
-In our A/B test on 100 products:
-- **Commercial API (Gemini):** Fast (~8.8s) but subject to strict rate limits (15 RPM on free tier) and recurring API costs for massive catalogs.
-- **Our Fine-Tuned Llama-3:** Completely **Free**, no rate limits, and zero data-privacy concerns. The text output is perfectly structured for Amazon/Shopify with engaging hooks and bullet points.
+![Hero](docs/assets/screenshot1.png)
 
-## 🛠️ Tech Stack
-- **AI & Training:** Hugging Face `transformers`, `peft`, `unsloth`, `trl`, `ollama`
-- **Backend:** Python, `FastAPI`, `Uvicorn`, `Pydantic`
-- **Frontend:** HTML5, Vanilla CSS (Glassmorphism design), JavaScript
-- **Deployment:** Docker (for API & Database), Hugging Face Hub
+</div>
 
-## 🚀 How to Run Locally
+---
+
+## 🎯 What is Shopify AI Optimizer?
+
+Writing compelling product descriptions and managing massive catalogs is a time-consuming bottleneck for e-commerce businesses. 
+
+**Shopify AI Optimizer** is a production-ready, local AI pipeline that connects directly to your Shopify Store, "looks" at your product photos, and generates high-converting, SEO-friendly HTML copy automatically. 
+
+**And the best part? It runs 100% locally. Your data stays with you, and there are absolutely no monthly AI subscription fees.**
+
+<div align="center">
+  <img src="docs/assets/screenshot3.png" alt="Dashboard View" width="100%">
+</div>
+
+---
+
+## ✨ Features that save you hundreds of hours
+
+<div align="center">
+  <img src="docs/assets/screenshot2.png" alt="Features Grid" width="100%">
+</div>
+
+- 📸 **Visual Analysis Engine:** Uses Vision LLMs (Llama 3.2 Vision) to look at product images and understand their color, material, style, and target audience automatically.
+- 💬 **Live AI Assistant:** Features a built-in context-aware chat assistant that acts as your personal marketing consultant for each specific product.
+- 🚀 **Asynchronous & Resilient:** Relies on robust Python background workers that handle heavy AI tasks and Shopify API rate limits invisibly, keeping your UI lightning fast.
+- 📊 **Bulk Excel/CSV Import:** Drag-and-drop spreadsheets to create hundreds of new products. The system validates them, enriches them with AI, and pushes them live.
+- 🔒 **Absolute Privacy:** Your business data never leaves your server. Competitors cannot scrape your prompts, and you stay fully GDPR compliant.
+
+---
+
+## ⚙️ How it Works in 5 Steps
+
+<div align="center">
+  <img src="docs/assets/screenshot4.png" alt="How it works pipeline" width="100%">
+</div>
+
+1. **Connect:** Enter your Shopify API token to sync your catalog instantly.
+2. **Scan:** The system downloads and analyzes your product images using Multimodal Vision AI.
+3. **Generate:** A unique, SEO-optimized, and compelling description is crafted.
+4. **Approve:** Review the generated copy from the beautiful glassmorphism dashboard.
+5. **Publish:** Push the approved updates back to your live Shopify store with a single click.
+
+---
+
+## 🛠️ Technical Stack & Architecture
+
+This project was built without relying on heavy frameworks like LangChain. It uses direct SDK integration for maximum performance, control, and transparency.
+
+- **Backend / API:** Python, `FastAPI`, `Uvicorn`, `SQLAlchemy` (Async)
+- **Database / Vector Store:** `PostgreSQL` (with `pgvector` extension)
+- **AI Models & Inference:** Local inference via `Ollama` (Llama 3.2 Vision) and Gemini API integration
+- **Frontend UI:** HTML5, Vanilla CSS (Glassmorphism), JavaScript
+- **Background Jobs:** Async `asyncio` task queues and `httpx`
+- **Infrastructure:** Docker & Docker Compose
+
+---
+
+## 🚀 Getting Started
 
 ### 1. Prerequisites
-- Python 3.10+
-- [Ollama](https://ollama.com/) installed locally.
+- Docker & Docker Compose
+- A Shopify Store (Custom App Access Token)
+- [Ollama](https://ollama.com/) installed locally (if utilizing local models)
 
-### 2. Setup the Model
-You can pull the fine-tuned model directly from Hugging Face or build it in Ollama:
+### 2. Environment Setup
+Clone the repository and prepare your environment variables:
 ```bash
-# Pull the base model
-ollama run llama3
+git clone https://github.com/yourusername/shopify-ai-optimizer.git
+cd shopify-ai-optimizer
+cp .env.example .env
+```
+*(Make sure to edit `.env` and add your `SHOPIFY_STORE_DOMAIN` and `SHOPIFY_ACCESS_TOKEN`)*
 
-# Or if you have the Modelfile from this repo
-ollama create e-commerce -f Modelfile
+### 3. Launch the Stack
+Start the Database, Backend API, and Background Workers automatically:
+```bash
+docker compose up --build -d
 ```
 
-### 3. Start the API
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
+### 4. Experience the Magic
+Navigate to `http://localhost:8000` in your browser. Watch the system ingest your products, analyze the visuals, and write beautiful marketing copy in real time.
 
-### 4. Open the UI
-Simply open `http://localhost:8000` in your browser. Enter a product title, list its features, and watch the AI write a high-converting description in seconds!
+<br/>
 
-## 🔄 Phase 2: Asynchronous Automation & Orchestration (Completed!)
-In the second phase of this project, we upgraded the architecture to handle massive scale and seamless integrations for e-commerce platforms.
-
-- **PostgreSQL Job Queue:** Implemented a robust database-backed queue system. When thousands of product generation requests hit the API, they are safely stored in PostgreSQL with a `PENDING` status.
-- **Async Poller (Worker):** A background Python worker continuously polls the database, feeding jobs one by one to the local Ollama LLM. This guarantees zero Out-of-Memory (OOM) errors and ensures no jobs are lost even if the server restarts.
-- **n8n Workflow Automation:** Designed a fully automated, low-code n8n pipeline.
-  1. Detects new products with empty descriptions in Google Sheets.
-  2. Submits them via a batch API call to our FastAPI backend.
-  3. The API immediately responds with `202 Accepted` (Webhook workflow).
-  4. Once the LLM finishes generating the SEO HTML copy, the backend sends a secure Webhook back to n8n.
-  5. n8n dynamically updates the exact row in Google Sheets with the finalized `Completed` status and the rich HTML description.
-
-This asynchronous webhook architecture is highly sought after by enterprise clients on platforms like Upwork, demonstrating production-ready systems engineering!
+<div align="center">
+  <i>Designed & Developed for Modern E-Commerce</i>
+</div>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopify AI Optimizer — AI-Powered E-Commerce Catalog Management</title>
+  <meta name="description" content="A production-ready AI engineering pipeline that uses Vision AI, RAG, and local LLMs to automatically generate high-converting, SEO-friendly product descriptions and push them directly to Shopify." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-0: #060812;
+      --bg-1: #0c1124;
+      --bg-glass: rgba(255,255,255,0.04);
+      --bg-glass-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-bright: rgba(139,92,246,0.4);
+      --purple-400: #a78bfa;
+      --purple-500: #8b5cf6;
+      --purple-600: #7c3aed;
+      --cyan-500: #06b6d4;
+      --green-400: #4ade80;
+      --amber-400: #fbbf24;
+      --pink-400: #f472b6;
+      --grad-primary: linear-gradient(135deg, var(--purple-500), var(--cyan-500));
+      --text-1: #f8fafc;
+      --text-2: #94a3b8;
+      --text-3: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-0); color: var(--text-1); line-height: 1.6; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+    .orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; opacity: 0.3; }
+    .orb-1 { width: 600px; height: 600px; background: var(--purple-600); top: -200px; right: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: var(--cyan-500); bottom: 10%; left: -150px; }
+    .orb-3 { width: 300px; height: 300px; background: var(--pink-400); top: 50%; right: 20%; }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; background: rgba(6,8,18,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; color: var(--text-1); text-decoration: none; }
+    .nav-logo-icon { width: 32px; height: 32px; background: var(--grad-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--text-2); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text-1); }
+    .nav-cta { display: flex; align-items: center; gap: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s ease; border: none; }
+    .btn-primary { background: var(--grad-primary); color: white; box-shadow: 0 0 24px rgba(139,92,246,0.4); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(139,92,246,0.6); }
+    .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg-glass); color: var(--text-1); border-color: var(--border-bright); }
+    section { position: relative; z-index: 1; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    #hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 120px 24px 80px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); border-radius: 100px; font-size: 0.8rem; font-weight: 600; color: var(--purple-400); margin-bottom: 32px; animation: fadeInDown 0.6s ease forwards; position: relative; overflow: hidden; }
+    .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--purple-400); border-radius: 50%; animation: pulse-dot 2s infinite; }
+    .hero-badge::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%); animation: shimmer 3s infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.5); } }
+    @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    .hero-title { font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 24px; animation: fadeInUp 0.7s ease 0.1s both; }
+    .hero-title .grad { background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-subtitle { font-size: clamp(1rem, 2vw, 1.25rem); color: var(--text-2); max-width: 680px; margin: 0 auto 48px; line-height: 1.7; animation: fadeInUp 0.7s ease 0.2s both; }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 80px; animation: fadeInUp 0.7s ease 0.3s both; }
+    .btn-lg { padding: 14px 28px; font-size: 1rem; border-radius: var(--radius-md); }
+    .hero-stats { display: flex; gap: 48px; justify-content: center; flex-wrap: wrap; animation: fadeInUp 0.7s ease 0.4s both; }
+    .stat-item { text-align: center; }
+    .stat-value { font-size: 2rem; font-weight: 800; background: var(--grad-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--text-3); margin-top: 4px; font-weight: 500; }
+    .dashboard-preview { position: relative; max-width: 1000px; margin: 0 auto 120px; animation: fadeInUp 0.8s ease 0.5s both; }
+    .dashboard-glow { position: absolute; inset: -30px; background: radial-gradient(ellipse at center, rgba(139,92,246,0.3) 0%, transparent 70%); pointer-events: none; z-index: -1; }
+    .dashboard-frame { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.6); }
+    .frame-bar { display: flex; align-items: center; gap: 8px; padding: 14px 20px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+    .frame-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .frame-url { flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text-3); }
+    .frame-content { display: grid; grid-template-columns: 200px 1fr; min-height: 460px; }
+    .frame-sidebar { background: rgba(0,0,0,0.2); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .sidebar-logo { font-weight: 800; font-size: 0.85rem; color: var(--text-1); margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .sidebar-logo-icon { width: 24px; height: 24px; background: var(--grad-primary); border-radius: 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+    .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.8rem; color: var(--text-3); cursor: pointer; }
+    .sidebar-item.active { background: rgba(139,92,246,0.15); color: var(--purple-400); }
+    .frame-main { padding: 24px; }
+    .frame-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .frame-title { font-size: 0.95rem; font-weight: 700; }
+    .frame-subtitle { font-size: 0.7rem; color: var(--text-3); }
+    .filter-pills { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .pill { padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; cursor: pointer; }
+    .pill-active { background: rgba(139,92,246,0.2); color: var(--purple-400); border: 1px solid rgba(139,92,246,0.3); }
+    .pill-warn { background: rgba(251,191,36,0.15); color: var(--amber-400); border: 1px solid rgba(251,191,36,0.3); }
+    .pill-success { background: rgba(74,222,128,0.12); color: var(--green-400); border: 1px solid rgba(74,222,128,0.3); }
+    .pill-ghost { background: transparent; color: var(--text-3); border: 1px solid var(--border); }
+    .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .product-card { background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; transition: all 0.2s; }
+    .product-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+    .product-img { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2rem; position: relative; }
+    .gradient-1 { background: linear-gradient(135deg, #1e1b4b, #312e81); }
+    .gradient-2 { background: linear-gradient(135deg, #064e3b, #065f46); }
+    .gradient-3 { background: linear-gradient(135deg, #7c2d12, #991b1b); }
+    .gradient-4 { background: linear-gradient(135deg, #1e3a5f, #1e40af); }
+    .gradient-5 { background: linear-gradient(135deg, #2d1b69, #5b21b6); }
+    .gradient-6 { background: linear-gradient(135deg, #134e4a, #0f766e); }
+    .product-status { position: absolute; top: 6px; right: 6px; padding: 2px 7px; border-radius: 100px; font-size: 0.6rem; font-weight: 700; }
+    .status-review { background: rgba(251,191,36,0.25); color: var(--amber-400); }
+    .status-done { background: rgba(74,222,128,0.2); color: var(--green-400); }
+    .status-processing { background: rgba(139,92,246,0.2); color: var(--purple-400); }
+    .product-info { padding: 10px; }
+    .product-name { font-size: 0.72rem; font-weight: 600; margin-bottom: 4px; }
+    .product-meta { font-size: 0.62rem; color: var(--text-3); }
+    .product-action { font-size: 0.62rem; color: var(--purple-400); font-weight: 600; margin-top: 6px; }
+    #features { padding: 100px 0; }
+    .section-header { text-align: center; margin-bottom: 64px; }
+    .section-tag { display: inline-block; padding: 4px 14px; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25); border-radius: 100px; font-size: 0.75rem; font-weight: 600; color: var(--purple-400); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .section-title { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; }
+    .section-desc { font-size: 1.05rem; color: var(--text-2); max-width: 560px; margin: 0 auto; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; }
+    .feature-card { background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; transition: all 0.3s ease; position: relative; overflow: hidden; }
+    .feature-card::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: var(--grad-primary); opacity: 0; transition: opacity 0.3s; }
+    .feature-card:hover { border-color: var(--border-bright); transform: translateY(-4px); box-shadow: 0 24px 48px rgba(0,0,0,0.4); }
+    .feature-card:hover::before { opacity: 0.04; }
+    .feature-icon { width: 52px; height: 52px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 20px; position: relative; z-index: 1; }
+    .icon-purple { background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.3); }
+    .icon-cyan { background: rgba(6,182,212,0.2); border: 1px solid rgba(6,182,212,0.3); }
+    .icon-green { background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.25); }
+    .icon-amber { background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.25); }
+    .icon-pink { background: rgba(244,114,182,0.15); border: 1px solid rgba(244,114,182,0.25); }
+    .icon-blue { background: rgba(96,165,250,0.15); border: 1px solid rgba(96,165,250,0.25); }
+    .feature-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; position: relative; z-index: 1; }
+    .feature-desc { font-size: 0.9rem; color: var(--text-2); line-height: 1.7; position: relative; z-index: 1; }
+    .feature-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; position: relative; z-index: 1; }
+    .tag { padding: 3px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; background: var(--bg-glass); border: 1px solid var(--border); color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+    #architecture { padding: 100px 0; background: linear-gradient(180deg, transparent, rgba(139,92,246,0.03), transparent); }
+    .pipeline { display: flex; align-items: stretch; gap: 0; margin-top: 64px; overflow-x: auto; padding-bottom: 8px; }
+    .pipeline-step { flex: 1; min-width: 160px; background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 28px 20px; text-align: center; transition: all 0.3s; }
+    .pipeline-step:hover { border-color: var(--border-bright); background: var(--bg-glass-hover); }
+    .pipeline-arrow { display: flex; align-items: center; padding: 0 8px; color: var(--purple-400); font-size: 1.2rem; flex-shrink: 0; }
+    .pipeline-step-num { width: 28px; height: 28px; background: var(--grad-primary); border-radius: 50%; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+    .pipeline-step-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .pipeline-step-title { font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+    .pipeline-step-desc { font-size: 0.72rem; color: var(--text-3); line-height: 1.5; }
+    #tech { padding: 100px 0; }
+    .tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-top: 48px; }
+    .tech-card { background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px 20px; text-align: center; transition: all 0.25s; cursor: default; }
+    .tech-card:hover { border-color: var(--border-bright); background: var(--bg-glass-hover); transform: translateY(-3px); }
+    .tech-icon { font-size: 2rem; margin-bottom: 10px; }
+    .tech-name { font-size: 0.85rem; font-weight: 700; color: var(--text-1); }
+    .tech-role { font-size: 0.7rem; color: var(--text-3); margin-top: 4px; }
+    #code { padding: 100px 0; }
+    .code-showcase { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
+    .code-block { background: var(--bg-1); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); }
+    .code-filename { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-2); }
+    .code-lang { font-size: 0.65rem; padding: 2px 8px; background: rgba(139,92,246,0.2); color: var(--purple-400); border-radius: 4px; font-weight: 600; }
+    pre { padding: 24px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.8; }
+    .kw { color: #c084fc; } .fn { color: #60a5fa; } .st { color: #86efac; } .cm { color: #475569; } .num { color: #fde68a; } .klass { color: #67e8f9; } .dec { color: #fb923c; }
+    #cta { padding: 100px 24px; text-align: center; }
+    .cta-card { max-width: 800px; margin: 0 auto; background: var(--bg-glass); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 72px 48px; position: relative; overflow: hidden; }
+    .cta-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at top, rgba(139,92,246,0.15) 0%, transparent 60%); }
+    .cta-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; position: relative; z-index: 1; }
+    .cta-desc { font-size: 1rem; color: var(--text-2); max-width: 480px; margin: 0 auto 40px; line-height: 1.7; position: relative; z-index: 1; }
+    .cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+    footer { padding: 40px 24px; border-top: 1px solid var(--border); }
+    .footer-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .footer-logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; }
+    .footer-text { font-size: 0.8rem; color: var(--text-3); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 0.8rem; color: var(--text-3); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text-1); }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg-0); } ::-webkit-scrollbar-thumb { background: var(--bg-glass); border-radius: 3px; }
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .code-showcase { grid-template-columns: 1fr; }
+      .frame-content { grid-template-columns: 1fr; }
+      .frame-sidebar { display: none; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .cta-card { padding: 48px 24px; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">&#x1F916;</div>
+      Shopify AI Optimizer
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#tech">Tech Stack</a></li>
+      <li><a href="#code">Code</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="http://localhost:8000" class="btn btn-primary" target="_blank" rel="noopener">Live Demo &#x2192;</a>
+    </div>
+  </nav>
+
+  <section id="hero">
+    <div class="hero-badge">&#x1F680; Full-Stack AI Engineering Project</div>
+    <h1 class="hero-title">
+      AI-Powered E-Commerce<br />
+      <span class="grad">Catalog Automation</span>
+    </h1>
+    <p class="hero-subtitle">
+      A production-ready pipeline that connects to your Shopify store, uses <strong>Vision AI</strong> to analyze product images, and generates compelling <strong>SEO-optimized descriptions</strong> automatically — all with a local LLM, zero cloud inference cost.
+    </p>
+    <div class="hero-actions">
+      <a href="http://localhost:8000" class="btn btn-primary btn-lg" target="_blank" rel="noopener">&#x1F5A5;&#xFE0F; Open Live Demo</a>
+      <a href="#features" class="btn btn-ghost btn-lg">Explore Features &#x2193;</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-value" id="stat1">5+</div>
+        <div class="stat-label">AI Models Integrated</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="stat2">3</div>
+        <div class="stat-label">Async Workers</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">Hybrid</div>
+        <div class="stat-label">BM25 + Vector RAG</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">$0</div>
+        <div class="stat-label">LLM Inference Cost</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="dashboard-preview reveal">
+      <div class="dashboard-glow"></div>
+      <div class="dashboard-frame">
+        <div class="frame-bar">
+          <div class="frame-dot" style="background:#ff5f57"></div>
+          <div class="frame-dot" style="background:#febb2c"></div>
+          <div class="frame-dot" style="background:#28ca41"></div>
+          <div class="frame-url">localhost:8000 &#x2014; Shopify AI Optimizer</div>
+        </div>
+        <div class="frame-content">
+          <div class="frame-sidebar">
+            <div class="sidebar-logo">
+              <div class="sidebar-logo-icon">&#x1F916;</div>
+              AI Optimizer
+            </div>
+            <div class="sidebar-item active">&#x1F4E6; Products</div>
+            <div class="sidebar-item">&#x1F4AC; AI Chat</div>
+            <div class="sidebar-item">&#x1F4CA; Analytics</div>
+            <div class="sidebar-item">&#x1F4E4; Import</div>
+            <div class="sidebar-item">&#x2699;&#xFE0F; Settings</div>
+          </div>
+          <div class="frame-main">
+            <div class="frame-topbar">
+              <div>
+                <div class="frame-title">Product Catalog</div>
+                <div class="frame-subtitle">Automatically generate &amp; review AI-written descriptions</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <div class="pill pill-active">&#x26A1; Connect Shopify</div>
+                <div class="pill pill-ghost">&#x1F4E4; Import Excel</div>
+              </div>
+            </div>
+            <div class="filter-pills">
+              <div class="pill pill-active">All 21</div>
+              <div class="pill pill-warn">Needs Review 15</div>
+              <div class="pill pill-success">Done 5</div>
+              <div class="pill pill-ghost">Processing 0</div>
+            </div>
+            <div class="products-grid">
+              <div class="product-card"><div class="product-img gradient-1">&#x1F3C2;<div class="product-status status-review">Needs Review</div></div><div class="product-info"><div class="product-name">The Hidden Snowboard</div><div class="product-meta">ID: 65 &middot; Barcode: N/A</div><div class="product-action">Review &amp; Edit &#x2192;</div></div></div>
+              <div class="product-card"><div class="product-img gradient-2">&#x1F3BF;<div class="product-status status-done">Done &#x2713;</div></div><div class="product-info"><div class="product-name">Collection: Liquid</div><div class="product-meta">ID: 60 &middot; Barcode: N/A</div><div class="product-action" style="color:var(--green-400)">Published &#x2713;</div></div></div>
+              <div class="product-card"><div class="product-img gradient-3">&#x1F3D4;&#xFE0F;<div class="product-status status-processing">Processing</div></div><div class="product-info"><div class="product-name">Videographer Board</div><div class="product-meta">ID: 71 &middot; Barcode: N/A</div><div class="product-action" style="color:var(--purple-400)">AI Running...</div></div></div>
+              <div class="product-card"><div class="product-img gradient-4">&#x1F3AF;<div class="product-status status-review">Needs Review</div></div><div class="product-info"><div class="product-name">Out of Stock Board</div><div class="product-meta">ID: 70 &middot; Barcode: N/A</div><div class="product-action">Review &amp; Edit &#x2192;</div></div></div>
+              <div class="product-card"><div class="product-img gradient-5">&#x1F30A;<div class="product-status status-done">Done &#x2713;</div></div><div class="product-info"><div class="product-name">Multi-location Board</div><div class="product-meta">ID: 68 &middot; Barcode: N/A</div><div class="product-action" style="color:var(--green-400)">Published &#x2713;</div></div></div>
+              <div class="product-card"><div class="product-img gradient-6">&#x2744;&#xFE0F;<div class="product-status status-review">Needs Review</div></div><div class="product-info"><div class="product-name">Minimal Snowboard</div><div class="product-meta">ID: 67 &middot; Barcode: N/A</div><div class="product-action">Review &amp; Edit &#x2192;</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">&#x2728; Key Features</div>
+        <h2 class="section-title">Everything needed to automate<br />your e-commerce catalog</h2>
+        <p class="section-desc">A full end-to-end pipeline from data ingestion to live Shopify publication, powered by local AI.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon icon-purple">&#x1F441;&#xFE0F;</div>
+          <div class="feature-title">Vision AI Pipeline</div>
+          <div class="feature-desc">Automatically downloads product images and processes them through <strong>Llama 3.2 Vision</strong> via Ollama to extract colors, materials, style, and target audience — before generating copy.</div>
+          <div class="feature-tags"><span class="tag">llama3.2-vision</span><span class="tag">Ollama</span><span class="tag">base64</span></div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon icon-cyan">&#x1F50D;</div>
+          <div class="feature-title">Hybrid RAG Search</div>
+          <div class="feature-desc">Two-stage retrieval combining <strong>BM25 lexical search</strong> and <strong>pgvector cosine similarity</strong> fused via Reciprocal Rank Fusion (RRF). Followed by a CrossEncoder reranker for precision — no cloud vector DB needed.</div>
+          <div class="feature-tags"><span class="tag">BM25Okapi</span><span class="tag">pgvector</span><span class="tag">HNSW</span><span class="tag">RRF</span></div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon icon-green">&#x1F916;</div>
+          <div class="feature-title">ReAct Agent — Function Calling</div>
+          <div class="feature-desc">An autonomous AI Sales Agent powered by <strong>Gemini's native function calling</strong>. Uses a ReAct loop to search products, check stock, generate descriptions, with duplicate call detection to prevent infinite loops.</div>
+          <div class="feature-tags"><span class="tag">Gemini API</span><span class="tag">ReAct</span><span class="tag">function_calling</span></div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon icon-amber">&#x26A1;</div>
+          <div class="feature-title">Async Background Workers</div>
+          <div class="feature-desc">Two independent <strong>asyncio queue pollers</strong> launched on FastAPI startup via <code>asyncio.create_task()</code>. One handles AI batch jobs, another manages Shopify API rate limits with exponential backoff.</div>
+          <div class="feature-tags"><span class="tag">asyncio</span><span class="tag">FastAPI lifespan</span><span class="tag">backoff</span></div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon icon-pink">&#x1F4E4;</div>
+          <div class="feature-title">Excel / CSV Bulk Import</div>
+          <div class="feature-desc">Drag-and-drop file upload that parses <strong>Excel (.xlsx) and CSV</strong> via pandas, validates every row (price, titles, image URLs), shows a live preview, and queues valid rows as ShopifyJob entries for AI enrichment.</div>
+          <div class="feature-tags"><span class="tag">pandas</span><span class="tag">openpyxl</span><span class="tag">validation</span></div>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon icon-blue">&#x1F517;</div>
+          <div class="feature-title">Live Shopify Integration</div>
+          <div class="feature-desc">A rate-limited <strong>Shopify Admin REST API client</strong> with semaphore concurrency control, exponential backoff on 429 errors, and full support for GET (fetch), PUT (update), and POST (create) operations.</div>
+          <div class="feature-tags"><span class="tag">Shopify API</span><span class="tag">httpx</span><span class="tag">rate-limit</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">&#x1F3D7;&#xFE0F; Architecture</div>
+        <h2 class="section-title">How the AI pipeline works</h2>
+        <p class="section-desc">From a raw product image to a live AI-generated description on Shopify in one automated flow.</p>
+      </div>
+      <div class="pipeline reveal">
+        <div class="pipeline-step"><div class="pipeline-step-num">1</div><div class="pipeline-step-icon">&#x1F6CD;&#xFE0F;</div><div class="pipeline-step-title">Shopify Fetch</div><div class="pipeline-step-desc">Rate-limited Admin API client pulls live product catalog</div></div>
+        <div class="pipeline-arrow">&#x2192;</div>
+        <div class="pipeline-step"><div class="pipeline-step-num">2</div><div class="pipeline-step-icon">&#x1F441;&#xFE0F;</div><div class="pipeline-step-title">Vision Analysis</div><div class="pipeline-step-desc">Llama 3.2 Vision extracts color, material, style, audience</div></div>
+        <div class="pipeline-arrow">&#x2192;</div>
+        <div class="pipeline-step"><div class="pipeline-step-num">3</div><div class="pipeline-step-icon">&#x270D;&#xFE0F;</div><div class="pipeline-step-title">AI Copywriting</div><div class="pipeline-step-desc">Fine-tuned LLaMA-3 generates SEO-optimized HTML descriptions</div></div>
+        <div class="pipeline-arrow">&#x2192;</div>
+        <div class="pipeline-step"><div class="pipeline-step-num">4</div><div class="pipeline-step-icon">&#x2705;</div><div class="pipeline-step-title">Human Review</div><div class="pipeline-step-desc">Dashboard for approval — edit, revise, or publish instantly</div></div>
+        <div class="pipeline-arrow">&#x2192;</div>
+        <div class="pipeline-step"><div class="pipeline-step-num">5</div><div class="pipeline-step-icon">&#x1F680;</div><div class="pipeline-step-title">Shopify Publish</div><div class="pipeline-step-desc">Approved descriptions pushed back via PUT Admin API</div></div>
+      </div>
+      <div style="margin-top:48px;" class="reveal">
+        <h3 style="text-align:center;font-size:1.2rem;font-weight:700;margin-bottom:32px;color:var(--text-2)">&#x1F50D; Hybrid RAG Search Pipeline (AI Sales Agent)</h3>
+        <div class="pipeline">
+          <div class="pipeline-step"><div class="pipeline-step-icon">&#x1F4AC;</div><div class="pipeline-step-title">User Query</div><div class="pipeline-step-desc">"Find me waterproof boots under $50"</div></div>
+          <div class="pipeline-arrow">&#x2192;</div>
+          <div class="pipeline-step"><div class="pipeline-step-icon">&#x1F9EE;</div><div class="pipeline-step-title">BGE-M3 Embed</div><div class="pipeline-step-desc">Query &#x2192; 1024-dim vector (local SentenceTransformer)</div></div>
+          <div class="pipeline-arrow">&#x2192;</div>
+          <div class="pipeline-step"><div class="pipeline-step-icon">&#x26A1;</div><div class="pipeline-step-title">BM25 + pgvector</div><div class="pipeline-step-desc">Parallel lexical + semantic search; RRF fusion</div></div>
+          <div class="pipeline-arrow">&#x2192;</div>
+          <div class="pipeline-step"><div class="pipeline-step-icon">&#x1F3AF;</div><div class="pipeline-step-title">CrossEncoder Rerank</div><div class="pipeline-step-desc">ms-marco-MiniLM scores top-20 &#x2192; top-3</div></div>
+          <div class="pipeline-arrow">&#x2192;</div>
+          <div class="pipeline-step"><div class="pipeline-step-icon">&#x1F916;</div><div class="pipeline-step-title">Gemini ReAct</div><div class="pipeline-step-desc">Agent reasons over results and responds to user</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tech">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">&#x1F6E0;&#xFE0F; Tech Stack</div>
+        <h2 class="section-title">Built with production-grade tools</h2>
+        <p class="section-desc">Every choice made for performance, reliability, and zero vendor lock-in.</p>
+      </div>
+      <div class="tech-grid reveal">
+        <div class="tech-card"><div class="tech-icon">&#x26A1;</div><div class="tech-name">FastAPI</div><div class="tech-role">Async REST API</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F418;</div><div class="tech-name">PostgreSQL</div><div class="tech-role">+ pgvector extension</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F999;</div><div class="tech-name">Ollama</div><div class="tech-role">Local LLM inference</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F52E;</div><div class="tech-name">Gemini API</div><div class="tech-role">ReAct Agent brain</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F9E0;</div><div class="tech-name">BGE-M3</div><div class="tech-role">1024-dim embeddings</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F3AF;</div><div class="tech-name">CrossEncoder</div><div class="tech-role">ms-marco reranker</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F43C;</div><div class="tech-name">Pandas</div><div class="tech-role">Excel/CSV parsing</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F433;</div><div class="tech-name">Docker</div><div class="tech-role">Containerized deploy</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F504;</div><div class="tech-name">SQLAlchemy</div><div class="tech-role">Async ORM</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F310;</div><div class="tech-name">httpx</div><div class="tech-role">Async HTTP client</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F512;</div><div class="tech-name">SlowAPI</div><div class="tech-role">Rate limiting</div></div>
+        <div class="tech-card"><div class="tech-icon">&#x1F501;</div><div class="tech-name">n8n</div><div class="tech-role">Workflow automation</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="code">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-tag">&#x1F4BB; Under the Hood</div>
+        <h2 class="section-title">Clean, production-quality code</h2>
+        <p class="section-desc">No LangChain. No magic. Pure Python with direct SDK usage for full control and transparency.</p>
+      </div>
+      <div class="code-showcase reveal">
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-filename">app/agent.py</span>
+            <span class="code-lang">Python</span>
+          </div>
+          <pre><span class="cm"># ReAct loop with Gemini function calling</span>
+<span class="kw">async def</span> <span class="fn">run_agent</span>(user_message: <span class="klass">str</span>) -&gt; <span class="klass">dict</span>:
+    chat = client.aio.chats.create(
+        model=settings.default_chat_model,
+        config=<span class="klass">GenerateContentConfig</span>(
+            tools=AVAILABLE_TOOLS,
+            <span class="cm"># Manual = full control over tool loop</span>
+            automatic_function_calling=
+                <span class="klass">AutomaticFunctionCallingConfig</span>(disable=<span class="kw">True</span>)
+        )
+    )
+    <span class="kw">for</span> i <span class="kw">in</span> range(max_iterations):
+        response = <span class="kw">await</span> chat.send_message(message)
+        <span class="kw">if</span> response.function_calls:
+            <span class="kw">if</span> call_sig <span class="kw">in</span> _seen_calls:
+                <span class="kw">break</span>  <span class="cm"># Prevent infinite loops</span>
+            result = <span class="kw">await</span> TOOL_MAP[func_name](**kwargs)
+        <span class="kw">else</span>:
+            <span class="kw">return</span> {<span class="st">"answer"</span>: response.text}</pre>
+        </div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-filename">app/services/search_service.py</span>
+            <span class="code-lang">Python</span>
+          </div>
+          <pre><span class="cm"># Hybrid BM25 + pgvector with RRF</span>
+<span class="kw">async def</span> <span class="fn">hybrid_search</span>(query, query_embedding):
+    <span class="cm"># BM25 lexical search</span>
+    bm25 = <span class="klass">BM25Okapi</span>(tokenized_chunks)
+    bm25_scores = bm25.get_scores(query.lower().split())
+
+    <span class="cm"># pgvector cosine similarity via HNSW index</span>
+    vector_results = <span class="kw">await</span> <span class="fn">chunk_vector_search</span>(
+        query_embedding=query_embedding, limit=candidate_limit
+    )
+    <span class="cm"># Reciprocal Rank Fusion merge</span>
+    <span class="kw">for</span> cid <span class="kw">in</span> all_chunk_ids:
+        bm25_rrf = bm25_weight * <span class="fn">_rrf_score</span>(bm25_rank[cid])
+        vec_rrf  = vector_weight * <span class="fn">_rrf_score</span>(vector_rank[cid])
+        rrf_scores[cid] = bm25_rrf + vec_rrf
+    <span class="cm"># CrossEncoder rerank top-20 to top-3</span>
+    <span class="kw">return await</span> <span class="fn">rerank</span>(query, candidates, top_k=<span class="num">3</span>)</pre>
+        </div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-filename">app/main.py — lifespan</span>
+            <span class="code-lang">Python</span>
+          </div>
+          <pre><span class="cm"># Two async workers launched on startup</span>
+<span class="dec">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(_: <span class="klass">FastAPI</span>):
+    <span class="cm"># Bootstrap pgvector + tables</span>
+    <span class="kw">async with</span> engine.begin() <span class="kw">as</span> conn:
+        <span class="kw">await</span> conn.execute(
+            text(<span class="st">"CREATE EXTENSION IF NOT EXISTS vector"</span>))
+        <span class="kw">await</span> conn.run_sync(Base.metadata.create_all)
+
+    <span class="cm"># Worker 1: AI description generator queue</span>
+    poller = asyncio.<span class="fn">create_task</span>(<span class="fn">queue_poller</span>())
+    <span class="cm"># Worker 2: Shopify API rate-limited push</span>
+    shopify = asyncio.<span class="fn">create_task</span>(<span class="fn">shopify_queue_poller</span>())
+
+    <span class="kw">yield</span>  <span class="cm"># App runs here</span>
+    poller.<span class="fn">cancel</span>()
+    shopify.<span class="fn">cancel</span>()</pre>
+        </div>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-filename">app/vision.py</span>
+            <span class="code-lang">Python</span>
+          </div>
+          <pre><span class="cm"># Vision AI: Image URL &#x2192; product features</span>
+<span class="kw">async def</span> <span class="fn">analyze_product_image</span>(image_url: <span class="klass">str</span>) -&gt; <span class="klass">str</span>:
+    <span class="cm"># Download and encode product image</span>
+    <span class="kw">async with</span> httpx.<span class="klass">AsyncClient</span>() <span class="kw">as</span> client:
+        resp = <span class="kw">await</span> client.<span class="fn">get</span>(image_url, timeout=<span class="num">30.0</span>)
+        image_b64 = base64.<span class="fn">b64encode</span>(resp.content)
+
+    <span class="cm"># Send to Llama 3.2 Vision via Ollama</span>
+    payload = {
+        <span class="st">"model"</span>: <span class="st">"llama3.2-vision"</span>,
+        <span class="st">"messages"</span>: [{
+            <span class="st">"role"</span>: <span class="st">"user"</span>,
+            <span class="st">"content"</span>: <span class="st">"Analyze: color, material, style"</span>,
+            <span class="st">"images"</span>: [image_b64]  <span class="cm"># base64 encoded</span>
+        }]
+    }
+    <span class="cm"># Returns: "Blue nylon, waterproof, sporty..."</span>
+    <span class="kw">return</span> data[<span class="st">"message"</span>][<span class="st">"content"</span>]</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta">
+    <div class="cta-card reveal">
+      <h2 class="cta-title">Ready to see it in action?</h2>
+      <p class="cta-desc">Open the live dashboard, connect your Shopify store, and watch AI generate product descriptions in real-time.</p>
+      <div class="cta-actions">
+        <a href="http://localhost:8000" class="btn btn-primary btn-lg" target="_blank" rel="noopener">&#x1F5A5;&#xFE0F; Open Dashboard</a>
+        <a href="http://localhost:8000/docs" class="btn btn-ghost btn-lg" target="_blank" rel="noopener">&#x1F4C4; API Docs (Swagger)</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-logo">&#x1F916; Shopify AI Optimizer</div>
+      <div class="footer-text">Built with FastAPI &middot; Ollama &middot; pgvector &middot; Gemini API</div>
+      <div class="footer-links">
+        <a href="http://localhost:8000/docs" target="_blank" rel="noopener">API Docs</a>
+        <a href="http://localhost:5678" target="_blank" rel="noopener">n8n</a>
+        <a href="#hero">&#x2191; Back to Top</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-links a');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(sec => { if (window.scrollY >= sec.offsetTop - 120) current = sec.id; });
+      navLinks.forEach(link => { link.style.color = link.getAttribute('href') === '#' + current ? 'var(--text-1)' : 'var(--text-2)'; });
+    }, { passive: true });
+
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      document.querySelector('.orb-1').style.transform = `translate(${x}px, ${y}px)`;
+      document.querySelector('.orb-2').style.transform = `translate(${-x * 0.7}px, ${-y * 0.7}px)`;
+    }, { passive: true });
+  </script>
+</body>
+</html>

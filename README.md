@@ -8,7 +8,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Shopify](https://img.shields.io/badge/Shopify-95BF47?style=flat&logo=shopify&logoColor=white)](https://shopify.com)
 
-[Live Demo](http://localhost:8000) &middot; [API Documentation](http://localhost:8000/docs) &middot; [Report Bug](#)
+[Watch Video Demo](#) &middot; [API Documentation](http://localhost:8000/docs) &middot; [Report Bug](#)
 
 <br/>
 
@@ -24,7 +24,7 @@ Writing compelling product descriptions and managing massive catalogs is a time-
 
 **Shopify AI Optimizer** is a production-ready, local AI pipeline that connects directly to your Shopify Store, "looks" at your product photos, and generates high-converting, SEO-friendly HTML copy automatically. 
 
-**And the best part? It runs 100% locally. Your data stays with you, and there are absolutely no monthly AI subscription fees.**
+Built as a **comprehensive portfolio project**, this application demonstrates advanced software engineering, AI agent orchestration, and robust backend design. **And the best part? It runs 100% locally. Your data stays with you, and there are absolutely no monthly AI subscription fees.**
 
 <div align="center">
   <img src="docs/assets/screenshot3.png" alt="Dashboard View" width="100%">
@@ -32,17 +32,18 @@ Writing compelling product descriptions and managing massive catalogs is a time-
 
 ---
 
-## ✨ Features that save you hundreds of hours
+## ✨ Enterprise-Grade Features
 
 <div align="center">
   <img src="docs/assets/screenshot2.png" alt="Features Grid" width="100%">
 </div>
 
-- 📸 **Visual Analysis Engine:** Uses Vision LLMs (Llama 3.2 Vision) to look at product images and understand their color, material, style, and target audience automatically.
-- 💬 **Live AI Assistant:** Features a built-in context-aware chat assistant that acts as your personal marketing consultant for each specific product.
-- 🚀 **Asynchronous & Resilient:** Relies on robust Python background workers that handle heavy AI tasks and Shopify API rate limits invisibly, keeping your UI lightning fast.
-- 📊 **Bulk Excel/CSV Import:** Drag-and-drop spreadsheets to create hundreds of new products. The system validates them, enriches them with AI, and pushes them live.
-- 🔒 **Absolute Privacy:** Your business data never leaves your server. Competitors cannot scrape your prompts, and you stay fully GDPR compliant.
+- 🧠 **Custom ReAct Agent Architecture:** Implements a sophisticated autonomous AI agent capable of intelligent function calling (RAG integration, store manipulation) without the bloat of external frameworks like LangChain.
+- 📸 **Multimodal Vision Engine:** Uses Vision LLMs (Llama 3.2 Vision) to visually process product images, extracting materials, colors, and stylistic nuances to inform the copywriting process.
+- 💬 **Context-Aware AI Chat (RAG):** Features a built-in Hybrid RAG (Retrieval-Augmented Generation) chat assistant that acts as a personalized marketing consultant. It can instantly answer queries based on your catalog's specific data.
+- 🚀 **Asynchronous & Resilient:** Engineered with robust Python `asyncio` background workers to handle long-running AI inference tasks and strict Shopify API rate limits invisibly, keeping the UI highly responsive.
+- 📊 **Bulk Excel/CSV Pipeline:** A resilient drag-and-drop importer that handles bulk datasets, validates schema constraints (prices, barcodes), and queues them for AI enrichment.
+- 🔒 **Data Privacy First:** Designed for local LLM inference via Ollama, ensuring zero data leakage to third-party APIs.
 
 ---
 
@@ -52,28 +53,29 @@ Writing compelling product descriptions and managing massive catalogs is a time-
   <img src="docs/assets/screenshot4.png" alt="How it works pipeline" width="100%">
 </div>
 
-1. **Connect:** Enter your Shopify API token to sync your catalog instantly.
-2. **Scan:** The system downloads and analyzes your product images using Multimodal Vision AI.
-3. **Generate:** A unique, SEO-optimized, and compelling description is crafted.
-4. **Approve:** Review the generated copy from the beautiful glassmorphism dashboard.
-5. **Publish:** Push the approved updates back to your live Shopify store with a single click.
+1. **Connect:** Securely enter your Shopify API token to instantly sync the catalog via REST API.
+2. **Scan:** The system parallel-downloads and analyzes product images using local Multimodal Vision AI.
+3. **Generate:** An asynchronous worker crafts a unique, SEO-optimized, and converting HTML description for every product.
+4. **Approve:** Review the generated copy from the beautiful glassmorphism React-like vanilla frontend.
+5. **Publish:** Push the approved updates back to the live Shopify store via POST/PUT requests with a single click.
 
 ---
 
 ## 🛠️ Technical Stack & Architecture
 
-This project was built without relying on heavy frameworks like LangChain. It uses direct SDK integration for maximum performance, control, and transparency.
+This architecture prioritizes raw performance, complete transparency, and developer control.
 
-- **Backend / API:** Python, `FastAPI`, `Uvicorn`, `SQLAlchemy` (Async)
-- **Database / Vector Store:** `PostgreSQL` (with `pgvector` extension)
-- **AI Models & Inference:** Local inference via `Ollama` (Llama 3.2 Vision) and Gemini API integration
-- **Frontend UI:** HTML5, Vanilla CSS (Glassmorphism), JavaScript
-- **Background Jobs:** Async `asyncio` task queues and `httpx`
-- **Infrastructure:** Docker & Docker Compose
+- **Backend / API:** Python, `FastAPI`, `Uvicorn`, `SQLAlchemy` (Async ORM)
+- **Database / Vector Store:** `PostgreSQL` (with `pgvector` extension for semantic search)
+- **AI Models & Inference:** Local inference via `Ollama` (Llama 3.2 Vision) and Gemini API function calling
+- **Search & Retrieval:** Custom Hybrid RAG implementation (BM25 + Semantic Vector Search)
+- **Frontend UI:** HTML5, Vanilla CSS (Modern Glassmorphism & CSS Grid), JavaScript
+- **Background Jobs:** Async `asyncio` task polling queues, `httpx` for efficient I/O
+- **Infrastructure:** Containerized with Docker & Docker Compose for guaranteed reproducibility
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Local Development)
 
 ### 1. Prerequisites
 - Docker & Docker Compose
@@ -101,5 +103,5 @@ Navigate to `http://localhost:8000` in your browser. Watch the system ingest you
 <br/>
 
 <div align="center">
-  <i>Designed & Developed for Modern E-Commerce</i>
+  <i>Designed & Developed to Showcase Advanced AI Engineering</i>
 </div>

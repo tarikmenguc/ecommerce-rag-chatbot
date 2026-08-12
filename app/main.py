@@ -17,7 +17,7 @@ from app.shopify_worker import shopify_queue_poller
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
-from app.routers import admin, chat, health, search, description, agent_chat, webhook_trendyol, shopify, shopify_vision, mock_shopify
+from app.routers import admin, chat, health, search, description, agent_chat, webhook_trendyol, shopify, shopify_vision, mock_shopify, excel_import
 
 settings = get_settings()
 logging.basicConfig(level=settings.log_level)
@@ -65,6 +65,7 @@ app.include_router(webhook_trendyol.router)
 app.include_router(shopify.router)
 app.include_router(shopify_vision.router)
 app.include_router(mock_shopify.router)
+app.include_router(excel_import.router)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

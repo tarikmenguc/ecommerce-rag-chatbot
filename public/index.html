@@ -52,6 +52,34 @@
     /* GRID */
     .product-grid-wrap { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+
+    /* IMPORT MODAL */
+    .import-overlay { position: fixed; inset: 0; background: rgba(7,10,20,0.82); z-index: 8000; display: none; align-items: center; justify-content: center; }
+    .import-overlay.open { display: flex; }
+    .import-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; width: 580px; max-height: 85vh; overflow-y: auto; padding: 2rem; box-shadow: 0 24px 60px rgba(0,0,0,0.6); }
+    .import-modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 8px; }
+    .import-modal .sub { font-size: 0.78rem; color: var(--muted-2); margin-bottom: 1.25rem; }
+    .drop-zone { border: 2px dashed rgba(99,102,241,0.35); border-radius: var(--radius); padding: 2.5rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(99,102,241,0.04); }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--primary); background: rgba(99,102,241,0.1); }
+    .drop-zone svg { opacity: 0.4; margin-bottom: 0.5rem; }
+    .drop-zone p { font-size: 0.82rem; color: var(--muted-2); }
+    .drop-zone .fmt { font-size: 0.7rem; color: var(--muted); margin-top: 0.35rem; }
+    .import-file-info { display: flex; align-items: center; gap: 10px; padding: 0.75rem 1rem; background: var(--surface-2); border-radius: var(--radius-sm); margin-top: 1rem; font-size: 0.82rem; }
+    .import-file-info .fname { flex: 1; font-weight: 600; }
+    .import-file-info .remove-file { color: var(--error); cursor: pointer; font-size: 0.75rem; }
+    .import-preview { margin-top: 1.25rem; }
+    .import-preview h3 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 6px; }
+    .import-preview table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .import-preview th { text-align: left; padding: 6px 8px; background: var(--surface-2); color: var(--muted-2); font-weight: 600; border-bottom: 1px solid var(--border); }
+    .import-preview td { padding: 6px 8px; border-bottom: 1px solid var(--border); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .import-preview .status-ok { color: var(--success); }
+    .import-preview .status-err { color: var(--error); }
+    .import-errors { margin-top: 0.75rem; padding: 0.75rem 1rem; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-sm); font-size: 0.75rem; color: #fca5a5; max-height: 120px; overflow-y: auto; }
+    .import-errors strong { display: block; margin-bottom: 0.3rem; color: var(--error); }
+    .import-summary { margin-top: 1rem; padding: 0.75rem 1rem; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-sm); font-size: 0.8rem; color: #6ee7b7; }
+    .import-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; gap: 0.75rem; }
+    .import-actions .template-link { font-size: 0.75rem; color: var(--primary); cursor: pointer; text-decoration: underline; }
+    .import-actions .btn-row { display: flex; gap: 0.5rem; }
     .p-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
     .p-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.14); box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
     .p-card.selected { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); }
@@ -202,6 +230,9 @@
   <div class="sb-btn" id="nav-manual" data-tip="Copy Generator" onclick="switchTab('manual')">
     <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
   </div>
+  <div class="sb-btn" id="nav-import" data-tip="Excel Import" onclick="openImportModal()">
+    <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+  </div>
   <div style="width:28px;height:1px;background:var(--border);margin:0.5rem 0;"></div>
   <div class="sb-btn" id="nav-help" data-tip="Help &amp; Docs" onclick="switchTab('help')">
     <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -252,6 +283,11 @@
       <div class="rp-body">
         <div class="rp-ctx"><img id="rp-img" class="rp-ctx-img" src="" alt="" onerror="this.style.display='none'" /><div><div class="rp-ctx-name" id="rp-name">—</div><div class="rp-ctx-sub" id="rp-sub">—</div></div></div>
         <input type="hidden" id="rp-job-id" />
+        <div id="rp-error-box" style="display:none; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: var(--radius-sm); padding: 1rem; color: #fca5a5; font-size: 0.8rem; margin-bottom: 0.5rem;">
+          <strong style="display:block;margin-bottom:0.4rem;color:var(--error);">Error Details</strong>
+          <div id="rp-error-text" style="margin-bottom: 0.6rem; font-family: monospace; white-space: pre-wrap; word-break: break-all;"></div>
+          <div id="rp-error-analysis" style="color: var(--text); background: rgba(0,0,0,0.3); padding: 0.6rem; border-radius: 4px; border-left: 3px solid var(--error); line-height: 1.45;"></div>
+        </div>
         <div style="display:flex;flex-direction:column;gap:0.5rem;">
           <div class="rp-section-label">AI Sales Copy <span class="unsaved-pill" id="unsaved-pill">Unsaved changes</span></div>
           <textarea id="rp-text" class="editor-textarea" oninput="onTextEdit()" placeholder="AI-generated copy will appear here..."></textarea>
@@ -458,6 +494,53 @@
   </div>
 </div>
 
+<!-- IMPORT MODAL -->
+<div class="import-overlay" id="import-overlay">
+  <div class="import-modal">
+    <h2>
+      <svg width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Import Products from Excel
+    </h2>
+    <p class="sub">Upload an Excel (.xlsx) or CSV file to create new products on Shopify with AI-generated descriptions.</p>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('import-file-input').click()">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+      <p>Drag &amp; drop your file here, or <strong style="color:var(--primary)">click to browse</strong></p>
+      <p class="fmt">Supports: .xlsx, .csv</p>
+    </div>
+    <input type="file" id="import-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(this)" />
+
+    <div id="import-file-info" class="import-file-info" style="display:none">
+      <svg width="16" height="16" fill="none" stroke="var(--success)" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="fname" id="import-fname">file.xlsx</span>
+      <span class="remove-file" onclick="clearImportFile()">✕ Remove</span>
+    </div>
+
+    <div id="import-preview-section" class="import-preview" style="display:none">
+      <h3>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        Preview
+      </h3>
+      <div id="import-preview-table"></div>
+    </div>
+
+    <div id="import-errors" class="import-errors" style="display:none"></div>
+
+    <div id="import-summary" class="import-summary" style="display:none"></div>
+
+    <div class="import-actions">
+      <a class="template-link" onclick="downloadTemplate()">📄 Download sample template</a>
+      <div class="btn-row">
+        <button class="btn-ghost" onclick="closeImportModal()">Cancel</button>
+        <button class="btn-primary" id="btn-import" onclick="doImport()" disabled>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import Products
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toasts" id="toasts"></div>
 
 <script>
@@ -512,7 +595,7 @@
     empty.style.display='none'; grid.style.display='grid';
     const bm = { PENDING:['badge-pending','Pending'], VISION:['badge-vision','Processing'], AWAITING_APPROVAL:['badge-approval','Needs Review'], COMPLETED:['badge-done','Done'], FAILED:['badge-failed','Failed'] };
     visible.forEach(job => {
-      const st=mapStatus(job.status), ia=(st==='AWAITING_APPROVAL'||st==='COMPLETED');
+      const st=mapStatus(job.status), ia=(st==='AWAITING_APPROVAL'||st==='COMPLETED'||st==='FAILED');
       const [bc,bl]=bm[st]||['badge-pending','—'];
       let ex='', ft='';
       if(st==='VISION') ex=`<div class="p-card-progress"><div class="dot"></div>AI is working...</div>`;
@@ -545,6 +628,27 @@
     document.getElementById('unsaved-pill').style.display = 'none';
     const img=document.getElementById('rp-img');
     if(job.image_url){img.src=job.image_url;img.style.display='block';}else img.style.display='none';
+    
+    const errBox = document.getElementById('rp-error-box');
+    if (job.status === 'FAILED' && job.error_message) {
+      errBox.style.display = 'block';
+      document.getElementById('rp-error-text').textContent = job.error_message;
+      let analysis = "Bilinmeyen bir hata oluştu. Lütfen logları kontrol edin.";
+      const errLower = (job.error_message || "").toLowerCase();
+      if (errLower.includes('unexpected keyword argument') || errLower.includes('typeerror') || errLower.includes('attributeerror') || errLower.includes('syntaxerror')) {
+        analysis = "Bu tamamen KODSAL bir hatadır (Backend'de uyuşmayan bir parametre veya değişken var). Güncel kodu kullandığınızdan emin olun.";
+      } else if (errLower.includes('shopify') || errLower.includes('429') || errLower.includes('401') || errLower.includes('rate limit')) {
+        analysis = "Bu hata Shopify API tarafından döndürüldü (Örn: Rate Limit aşımı, geçersiz ID veya yetkisizlik).";
+      } else if (errLower.includes('vision') || errLower.includes('image')) {
+        analysis = "Görsel analizi sırasında hata oluştu. Ürünün resmi bozuk, eksik veya Vision modeli erişilemez durumda olabilir.";
+      } else if (errLower.includes('ollama') || errLower.includes('llama') || errLower.includes('timeout') || errLower.includes('connection error')) {
+        analysis = "Yapay Zeka (Ollama/LLM) bağlantısı koptu veya zaman aşımına uğradı. Ollama'nın açık olduğundan emin olun.";
+      }
+      document.getElementById('rp-error-analysis').textContent = analysis;
+    } else {
+      errBox.style.display = 'none';
+    }
+
     document.getElementById('custom-req-box').classList.remove('open');
     document.getElementById('custom-req-input').value='';
     document.getElementById('right-panel').classList.add('open');
@@ -569,7 +673,19 @@
     catch(e){toast('Revision failed: '+e.message,'error');}
     finally { ta.classList.remove('blurred'); }
   }
-  async function doRegenerate() { if(!selectedId) return; try{const r=await fetch(`/shopify/jobs/${selectedId}/regenerate`,{method:'POST',headers:{'Content-Type':'application/json'}});if(!r.ok)throw new Error();toast('Re-queued for generation.','info');closePanel();await fetchJobs();}catch(e){toast('Error','error');} }
+  async function doRegenerate() {
+    if(!selectedId) return;
+    try {
+      const r=await fetch(`/shopify/jobs/${selectedId}/regenerate`,{method:'POST',headers:{'Content-Type':'application/json'}});
+      if(!r.ok) throw new Error();
+      toast('İşlem sırasına alındı! İşlenenler sekmesine geçiliyor...','info');
+      closePanel();
+      await fetchJobs();
+      setFilter('VISION');
+    } catch(e) {
+      toast('Error','error');
+    }
+  }
   async function doApprove() {
     if(!selectedId) return;
     const btn=document.getElementById('btn-approve'),text=document.getElementById('rp-text').value;
@@ -684,6 +800,153 @@
 
   function nextStep() { if(tourStep>=TOUR_STEPS.length-1){endTour();return;} tourStep++; showStep(tourStep); }
   function endTour() { document.getElementById('tour-overlay').classList.add('tour-hidden'); localStorage.setItem('shopify_optimizer_tour_done','1'); }
+
+  // ====== IMPORT MODAL ======
+  let importFile = null;
+  let importPreviewData = null;
+
+  function openImportModal() {
+    clearImportFile();
+    document.getElementById('import-overlay').classList.add('open');
+  }
+  function closeImportModal() {
+    document.getElementById('import-overlay').classList.remove('open');
+  }
+
+  // Drag and drop
+  const dropZone = document.getElementById('drop-zone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length > 0) {
+      const f = e.dataTransfer.files[0];
+      const name = f.name.toLowerCase();
+      if (name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) {
+        importFile = f;
+        showFileInfo(f);
+        previewImport(f);
+      } else {
+        toast('Unsupported file format. Please use .xlsx or .csv', 'error');
+      }
+    }
+  });
+
+  function handleImportFile(input) {
+    if (input.files.length > 0) {
+      importFile = input.files[0];
+      showFileInfo(importFile);
+      previewImport(importFile);
+    }
+  }
+
+  function showFileInfo(f) {
+    document.getElementById('import-fname').textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+    document.getElementById('import-file-info').style.display = 'flex';
+    document.getElementById('drop-zone').style.display = 'none';
+  }
+
+  function clearImportFile() {
+    importFile = null;
+    importPreviewData = null;
+    document.getElementById('import-file-input').value = '';
+    document.getElementById('import-file-info').style.display = 'none';
+    document.getElementById('drop-zone').style.display = '';
+    document.getElementById('import-preview-section').style.display = 'none';
+    document.getElementById('import-errors').style.display = 'none';
+    document.getElementById('import-summary').style.display = 'none';
+    document.getElementById('btn-import').disabled = true;
+    document.getElementById('btn-import').innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import Products';
+  }
+
+  async function previewImport(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const r = await fetch('/import/preview', { method: 'POST', body: formData });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail || 'Preview failed');
+      importPreviewData = d;
+      renderImportPreview(d);
+    } catch (e) {
+      toast('Preview error: ' + e.message, 'error');
+    }
+  }
+
+  function renderImportPreview(data) {
+    const section = document.getElementById('import-preview-section');
+    const tableDiv = document.getElementById('import-preview-table');
+    const errDiv = document.getElementById('import-errors');
+    const sumDiv = document.getElementById('import-summary');
+    const btn = document.getElementById('btn-import');
+
+    // Preview table
+    let html = '<table><thead><tr><th>#</th><th>Title</th><th>Price</th><th>Vendor</th><th>Image</th></tr></thead><tbody>';
+    data.preview.forEach(row => {
+      html += `<tr>
+        <td>${row.row_number}</td>
+        <td>${row.title || '<span class="status-err">—</span>'}</td>
+        <td>${row.price || '<span class="status-err">—</span>'}</td>
+        <td>${row.vendor || '—'}</td>
+        <td>${row.has_image ? '<span class="status-ok">✓ URL</span>' : '<span style="color:var(--muted)">—</span>'}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    tableDiv.innerHTML = html;
+    section.style.display = 'block';
+
+    // Errors
+    if (data.errors.length > 0) {
+      errDiv.innerHTML = '<strong>⚠ ' + data.errors.length + ' validation error(s) found:</strong>' +
+        data.errors.map(e => `<div>Row ${e.row}: ${e.field} — ${e.message}</div>`).join('');
+      errDiv.style.display = 'block';
+    } else {
+      errDiv.style.display = 'none';
+    }
+
+    // Summary
+    const validCount = data.valid_count;
+    sumDiv.innerHTML = `✅ ${validCount} of ${data.total_rows} products are valid and ready to import.`;
+    sumDiv.style.display = 'block';
+
+    // Enable import button if there are valid rows
+    if (validCount > 0) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import ${validCount} Products`;
+    } else {
+      btn.disabled = true;
+    }
+  }
+
+  async function doImport() {
+    if (!importFile) return;
+    const btn = document.getElementById('btn-import');
+    btn.disabled = true; btn.textContent = 'Importing...';
+    const formData = new FormData();
+    formData.append('file', importFile);
+    try {
+      const r = await fetch('/import/upload', { method: 'POST', body: formData });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.detail?.message || d.detail || 'Import failed');
+      toast(`${d.jobs_created} products imported! ${d.skipped > 0 ? d.skipped + ' skipped.' : ''}`, 'success');
+      closeImportModal();
+      await fetchJobs();
+      setFilter('PENDING');
+    } catch (e) {
+      toast('Import error: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import Products';
+    }
+  }
+
+  function downloadTemplate() {
+    window.location.href = '/import/template';
+  }
+
+  // Close modal on overlay click
+  document.getElementById('import-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeImportModal();
+  });
 
   // INIT
   fetchJobs();

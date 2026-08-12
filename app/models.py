@@ -173,3 +173,15 @@ class ShopifyJob(Base):
         DateTime(timezone=True), onupdate=func.now(), nullable=True
     )
 
+    # --- Excel Import fields ---
+    is_new_product: Mapped[bool] = mapped_column(default=False)
+    price: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    vendor: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    product_type: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    tags: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    sku: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    variant_option: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    stock_quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    source: Mapped[str] = mapped_column(String(32), default="shopify")  # "shopify" or "excel"
+
+

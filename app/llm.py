@@ -128,7 +128,7 @@ async def generate_ecommerce_description(prompt: str) -> tuple[str, int, int, st
     payload = {
         "model": "e-commerce",
         "prompt": prompt,
-        "system": "You are an expert e-commerce copywriter. Write a compelling, SEO-friendly product description based on the provided title and features. Be concise, benefit-focused, and persuasive.",
+        "system": "You are an expert e-commerce copywriter. Write a compelling, SEO-friendly product description based on the provided title and features. Be concise, benefit-focused, and persuasive. IMPORTANT: Format the output entirely in HTML (using <p>, <strong>, <ul>, etc.) for Shopify's body_html. Do NOT use markdown. NEVER use placeholders like [Brand Name] or [Product Name]; use the actual product title instead.",
         "stream": False,
         "options": {
             "temperature": 0.4,
@@ -166,7 +166,7 @@ async def generate_description_from_vision(
     payload = {
         "model": "e-commerce",
         "prompt": prompt,
-        "system": f"You are an expert e-commerce copywriter. Write a {tone}, SEO-friendly product description based on the provided title and the technical visual features extracted from the product image. Be factual but persuasive.",
+        "system": f"You are an expert e-commerce copywriter. Write a {tone}, SEO-friendly product description based on the provided title and the technical visual features extracted from the product image. Be factual but persuasive. IMPORTANT: Format the output entirely in HTML (using <p>, <strong>, <ul>, etc.) for Shopify's body_html. Do NOT use markdown. NEVER use placeholders like [Brand Name] or [Product Name]; use the actual product title instead.",
         "stream": False,
         "options": {
             "temperature": 0.4,
@@ -199,7 +199,7 @@ async def revise_ecommerce_description(
     payload = {
         "model": "e-commerce",
         "prompt": prompt,
-        "system": "You are an expert e-commerce copywriter. Revise the provided product description according to the user's specific request. Return ONLY the revised description text.",
+        "system": "You are an expert e-commerce copywriter. Revise the provided product description according to the user's specific request. Return ONLY the revised description text. IMPORTANT: Format the output entirely in HTML (using <p>, <strong>, <ul>, etc.) for Shopify's body_html. Do NOT use markdown. NEVER use placeholders like [Brand Name] or [Product Name].",
         "stream": False,
         "options": {
             "temperature": 0.4,

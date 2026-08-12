@@ -148,7 +148,8 @@
     .floating-chat.shifted { right: 436px; }
     .chat-trigger { width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 16px rgba(99,102,241,0.4); transition: transform 0.2s; }
     .chat-trigger:hover { transform: translateY(-3px); }
-    .chat-window { position: absolute; bottom: 66px; right: 0; width: 340px; height: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; display: none; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.5); animation: fadeUp 0.22s ease; }
+    .chat-window { position: absolute; bottom: 66px; right: 0; width: 340px; height: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; display: none; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,0.5); animation: fadeUp 0.22s ease; transition: width 0.3s ease, height 0.3s ease; }
+    .chat-window.expanded { width: 550px; height: 75vh; bottom: 80px; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
     .cw-header { padding: 0.9rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
     .cw-body { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.65rem; }
@@ -467,7 +468,7 @@
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   </div>
   <div class="chat-window" id="chat-win">
-    <div class="cw-header">AI Sales Assistant <button onclick="toggleChat()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;">&times;</button></div>
+    <div class="cw-header">AI Sales Assistant <div style="display:flex;gap:12px;align-items:center;"><button onclick="document.getElementById('chat-win').classList.toggle('expanded')" style="background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;" title="Expand/Collapse"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button><button onclick="toggleChat()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1;">&times;</button></div></div>
     <div class="cw-body" id="cw-body"><div class="cb ai">Hi! I'm your AI sales assistant. Ask me anything about your products or e-commerce strategy.</div></div>
     <div class="cw-footer">
       <input class="cw-input" id="cw-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()" />
